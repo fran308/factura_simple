@@ -27,12 +27,12 @@ cookie_config = {
     "expiry_days": st.secrets['cookie_expiry_days']
 }
 
-# Inicializar autenticador - ESTA es la sintaxis correcta
+# Inicializar autenticador -
 authenticator = stauth.Authenticate(
-    config['credentials'],
-    config['cookie']['name'],
-    config['cookie']['key'],
-    config['cookie']['expiry_days']
+    cookie_config['credentials'],
+    cookie_config['cookie']['name'],
+    cookie_config['cookie']['key'],
+    cookie_config['cookie']['expiry_days']
 )
 
 # Mostrar login
