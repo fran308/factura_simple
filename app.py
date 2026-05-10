@@ -3,7 +3,7 @@ import stripe
 from datetime import date
 import streamlit_authenticator as stauth
 
-"""
+
 
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
@@ -63,7 +63,7 @@ if not user_email.endswith('@ojoveterinario.es'):
     st.stop()
 
 #====================================================================================
-"""
+
 
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
