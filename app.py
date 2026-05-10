@@ -2,60 +2,49 @@ import streamlit as st
 import stripe
 from datetime import date
 import streamlit_authenticator as stauth
-from yaml.loader import SafeLoader
-import yaml
 
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
 # ===== AUTENTICACIÓN =====
-# Construir el diccionario de credenciales en el formato que espera la librería
-credentials = {
-    "usernames": {}
-}
+# Cargar credenciales desde secrets
+credentials = {"usernames": {}}
 
-for username, data in st.secrets['credentials']['usernames'].items():
+for username, data in st.secrets["credentials"]["usernames"].items():
     credentials["usernames"][username] = {
-        "email": data['email'],
-        "name": data['name'],
-        "password": data['password']
+        "email": data["email"],
+        "name": data["name"],
+        "password": data["password"]
     }
 
-# Configuración del cookie
-cookie_config = {
-    "name": st.secrets['cookie_name'],
-    "key": st.secrets['cookie_key'],
-    "expiry_days": st.secrets['cookie_expiry_days']
-}
-
-# Inicializar autenticador - ESTA es la sintaxis correcta
+# Inicializar autenticador - usando las claves correctas
 authenticator = stauth.Authenticate(
     credentials,
-    cookie_config['name'],
-    cookie_config['key'],
-    cookie_config['expiry_days']
+    st.secrets["cookie_name"],
+    st.secrets["cookie_key"],
+    st.secrets["cookie_expiry_days"]
 )
 
 # Mostrar login
-name, authentication_status, username = authenticator.login(location='main')
+name, authentication_status, username = authenticator.login("main")
 
 if authentication_status is False:
-    st.error('❌ Usuario o contraseña incorrectos')
+    st.error("❌ Usuario o contraseña incorrectos")
     st.stop()
 
 if authentication_status is None:
     st.title("🔐 Veterinary Billing System")
     st.caption("Secure payment link generator")
-    st.info('Por favor, ingresa tus credenciales en el formulario 👈')
+    st.info("Por favor, ingresa tus credenciales en el formulario 👈")
     st.stop()
 
 # Usuario autenticado
-st.sidebar.success(f'✅ Bienvenido **{name}**')
-authenticator.logout('Cerrar sesión', location='sidebar')
+st.sidebar.success(f"✅ Bienvenido **{name}**")
+authenticator.logout("Cerrar sesión", location="sidebar")
 
 # Restricción de dominio
-user_data = credentials["usernames"][username]
-if not user_data["email"].endswith("@ojoveterinario.es"):
-    st.error(f"❌ Acceso denegado: {user_data['email']} no está autorizado")
+user_email = credentials["usernames"][username]["email"]
+if not user_email.endswith("@ojoveterinario.es"):
+    st.error(f"❌ Acceso denegado: {user_email} no está autorizado")
     st.stop()
 
 
