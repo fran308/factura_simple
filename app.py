@@ -2,6 +2,11 @@ import streamlit as st
 import stripe
 from datetime import date
 
+# Load secrets from Streamlit Cloud dashboard
+stripe.api_key = st.secrets["STRIPE_SECRET_KEY"]
+TAX_21_ID = st.secrets["TAX_21_ID"]
+TAX_10_ID = st.secrets["TAX_10_ID"]
+
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
 # Mobile-friendly styling
@@ -32,9 +37,11 @@ def calculate_net(gross_price, vat_percentage):
 with st.sidebar:
     st.header("📄 Invoice Info")
     
+    # Manual invoice number (always)
     invoice_number = st.text_input(
         "Invoice number", 
-        placeholder="e.g., 2024-001, F-1245"
+        placeholder="e.g., 2024-001, F-1245",
+        help="Enter your manual invoice number"
     )
     
     invoice_date = st.date_input(
@@ -59,7 +66,8 @@ with st.form("add_product", clear_on_submit=True):
             "Price to charge (€ including VAT)", 
             min_value=0.0, 
             step=1.0, 
-            format="%.2f"
+            format="%.2f",
+            help="Example: If client pays €50 total, enter 50"
         )
     with col2:
         vat = st.radio("VAT Rate", ["21%", "10%"], horizontal=True)
@@ -67,16 +75,20 @@ with st.form("add_product", clear_on_submit=True):
     submitted = st.form_submit_button("Add to invoice", use_container_width=True)
     
     if submitted and name and price_with_vat > 0:
+        # Calculate net price (without VAT)
         vat_rate = 0.21 if vat == "21%" else 0.10
         net_price = calculate_net(price_with_vat, vat_rate)
         
+        tax_id = TAX_21_ID if vat == "21%" else TAX_10_ID
+        
         st.session_state.invoice_items.append({
             "name": name,
-            "gross_price": price_with_vat,
-            "net_price": net_price,
+            "gross_price": price_with_vat,  # What client pays
+            "net_price": net_price,          # Without VAT
             "vat": vat,
             "vat_rate": vat_rate,
             "vat_amount": price_with_vat - net_price,
+            "tax_id": tax_id
         })
         
         st.success(f"✓ Added: {name} - €{price_with_vat:.2f} (includes {vat} VAT)")
@@ -87,6 +99,7 @@ if st.session_state.invoice_items:
     st.divider()
     st.subheader("📋 Current invoice")
     
+    # Calculate totals
     total_gross = 0
     total_net = 0
     total_vat_21 = 0
@@ -120,17 +133,69 @@ if st.session_state.invoice_items:
     st.markdown(f"**💰 Total client pays (includes VAT):** €{total_gross:.2f}")
     st.caption(f"Net: €{total_net:.2f} + VAT 21%: €{total_vat_21:.2f} + VAT 10%: €{total_vat_10:.2f} = €{total_gross:.2f}")
     
+    # --- Action buttons ---
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("🔧 Generate Stripe link (will work after adding secrets)", type="primary", use_container_width=True):
-            st.warning("⚠️ Stripe not configured yet. Add secrets in Settings → Secrets")
+        if st.button("🚀 Generate Stripe link", type="primary", use_container_width=True):
+            if not invoice_number:
+                st.error("❌ Enter invoice number in sidebar first")
+            elif not st.session_state.invoice_items:
+                st.error("❌ No items in invoice")
+            else:
+                with st.spinner("Creating payment link..."):
+                    try:
+                        # Option 3: Send GROSS price with explicit tax rates
+                        line_items = []
+                        for item in st.session_state.invoice_items:
+                            # Convert gross price to cents (what client pays)
+                            unit_amount_cents = int(item['gross_price'] * 100)
+                            
+                            line_items.append({
+                                "price_data": {
+                                    "currency": "eur",
+                                    "unit_amount": unit_amount_cents,  # GROSS price
+                                    "product_data": {"name": item['name']},
+                                    "tax_behavior": "exclusive",  # Stripe adds tax on top
+                                },
+                                "quantity": 1,
+                                "tax_rates": [item['tax_id']],  # Explicit tax rate
+                            })
+                        
+                        # Create payment link with invoice metadata
+                        payment_link = stripe.PaymentLink.create(
+                            line_items=line_items,
+                            tax_id_collection={"enabled": True},  # Optional: collect NIF
+                            metadata={
+                                "invoice_number": invoice_number,
+                                "invoice_date": invoice_date.isoformat(),
+                                "total_gross": total_gross,
+                                "total_net": total_net
+                            }
+                        )
+                        
+                        st.success(f"✅ Payment link ready for Invoice #{invoice_number}")
+                        st.info(f"Client will be charged: **€{total_gross:.2f}** (includes {total_vat:.2f} VAT)")
+                        st.markdown("**Send this link to your client:**")
+                        st.code(payment_link.url, language="text")
+                        
+                        # Offer to reset after generation
+                        if st.button("🔄 Start new invoice"):
+                            st.session_state.invoice_items = []
+                            st.rerun()
+                            
+                    except Exception as e:
+                        st.error(f"Stripe error: {str(e)}")
+    
     with col2:
         if st.button("🗑 Clear all items", use_container_width=True):
             st.session_state.invoice_items = []
             st.rerun()
+
 else:
     st.info("💡 Add your first product or service using the form above")
 
+# --- Footer ---
 st.divider()
-st.caption("🔐 After deployment: Go to Settings → Secrets to add Stripe keys")
+st.caption("🔐 Stripe processes payments | Spanish VAT 21% / 10%")
+st.caption("📝 Prices you enter include VAT | Client pays exactly what you type")
