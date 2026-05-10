@@ -73,8 +73,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🐾 Vet Quick-Pay")
-st.caption("Generate Stripe payment links with Spanish VAT")
 
 # Session state for current invoice
 if 'invoice_items' not in st.session_state:
