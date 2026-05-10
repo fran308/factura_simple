@@ -1,7 +1,7 @@
 import streamlit as st
 import stripe
 from datetime import date
-
+'''
 #================================================================================Auth
 
 # Must be at the very top of your app
@@ -26,6 +26,7 @@ if st.sidebar.button("Logout"):
     st.logout()
 
 #========================================================================================Auth finished
+'''
 
 
 # Load secrets from Streamlit Cloud dashboard
