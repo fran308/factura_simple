@@ -224,20 +224,20 @@ if st.session_state.invoice_items:
                                 "quantity": 1,
                                 "tax_rates": [item['tax_id']],
                             })
-                            '''
-                            # Convert gross price to cents
-                            unit_amount_cents = int(item['gross_price'] * 100)
-                            
-                            line_items.append({
-                                "price_data": {
-                                    "currency": "eur",
-                                    "unit_amount": unit_amount_cents,  # Gross price
-                                    "product_data": {"name": item['name']},
-                                },
-                                "quantity": 1,
-                                "tax_rates": [item['tax_id']],  # This works in Checkout Sessions!
-                            })
-                            '''
+                        
+                           # Convert gross price to cents
+                           # unit_amount_cents = int(item['gross_price'] * 100)
+                           # 
+                           # line_items.append({
+                           #     "price_data": {
+                           #         "currency": "eur",
+                           #         "unit_amount": unit_amount_cents,  # Gross price
+                           #         "product_data": {"name": item['name']},
+                           #     },
+                           #     "quantity": 1,
+                           #     "tax_rates": [item['tax_id']],  # This works in Checkout Sessions!
+                           # })
+                         
                         
                         # Create Checkout Session (not Payment Link)
                         checkout_session = stripe.checkout.Session.create(
