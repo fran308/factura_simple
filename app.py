@@ -146,12 +146,18 @@ if st.session_state.invoice_items:
                 with st.spinner("Creating payment link..."):
                     try:
                         # IMPORTANT: Send NET price to Stripe (without VAT)
-                        # Stripe will add VAT automatically using tax_rates
+                        # Stripe will add VAT automatically using tax_behavior="inclusive"
                         line_items = []
                         for item in st.session_state.invoice_items:
+                            # Convert net_price to cents (integer)
+                            unit_amount_cents = int(item['net_price'] * 100)
+                            
+                            st.write(f"Debug: {item['name']} - Net: €{item['net_price']:.2f} = {unit_amount_cents} cents")  # Temporary debug
+                            
                             line_items.append({
                                 "price_data": {
                                     "currency": "eur",
+                                    "unit_amount": unit_amount_cents,  # ✅ FIXED: Added this line
                                     "tax_behavior": "inclusive",
                                     "product_data": {"name": item['name']},
                                 },
@@ -173,6 +179,9 @@ if st.session_state.invoice_items:
                         st.info(f"Client will be charged: **€{total_gross:.2f}** (includes {total_vat:.2f} VAT)")
                         st.markdown("**Send this link to your client:**")
                         st.code(payment_link.url, language="text")
+                        
+                        # Remove debug line after successful test
+                        st.caption("Debug info shown - this will disappear on next refresh")
                         
                         # Offer to reset after generation
                         if st.button("🔄 Start new invoice"):
