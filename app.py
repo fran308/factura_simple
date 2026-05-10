@@ -1,9 +1,6 @@
 import streamlit as st
 import stripe
 from datetime import date
-
-#================================================================================Auth
-
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
 # ===== AUTHENTICATION BLOCK =====
@@ -15,28 +12,28 @@ if "user" not in st.session_state or not st.session_state.user:
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
         if st.button("🔑 Login with Google", use_container_width=True):
-            # This triggers the OAuth flow
             st.login("google")
         st.caption("Only authorised clinic staff can access this system")
     st.stop()
 
 # If we reach here, user is authenticated
 user = st.session_state.user
-st.sidebar.write(f"👤 Logged in as: {user.get('name', user.get('email'))}")
 
-# Optional: Restrict to your clinic's email domain
-ALLOWED_DOMAINS = ["tuclinica.com", "tuclinica.es"]  # Cambia esto a tu dominio
+# === RESTRICT TO @ojoveterinario.es DOMAIN ONLY ===
 user_email = user.get('email', '')
-if ALLOWED_DOMAINS and not any(user_email.endswith(domain) for domain in ALLOWED_DOMAINS):
-    st.error("❌ Acceso denegado. Solo personal autorizado de la clínica puede usar este sistema.")
+if not user_email.endswith("@ojoveterinario.es"):
+    st.error("❌ Acceso denegado. Solo personal con correo @ojoveterinario.es puede usar este sistema.")
+    st.caption(f"Has iniciado sesión con: {user_email}")
     if st.button("Cerrar sesión"):
         st.logout()
+        st.rerun()
     st.stop()
 
+# Show logged in user info
+st.sidebar.write(f"👤 {user.get('name', user_email)}")
 if st.sidebar.button("Logout"):
     st.logout()
     st.rerun()
-
 #========================================================================================Auth finished
 
 
