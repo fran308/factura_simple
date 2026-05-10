@@ -2,26 +2,37 @@ import streamlit as st
 import stripe
 from datetime import date
 import streamlit_authenticator as stauth
+import yaml
+from io import StringIO
 
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
-# ===== AUTENTICACIÓN =====
-# Cargar credenciales desde secrets
-credentials = {"usernames": {}}
+# ===== AUTENTICACIÓN - MÉTODO UNIVERSAL =====
+# Construir el archivo YAML en memoria desde secrets
+yaml_config = {
+    "cookie": {
+        "expiry_days": st.secrets["cookie_expiry_days"],
+        "key": st.secrets["cookie_key"],
+        "name": st.secrets["cookie_name"]
+    },
+    "preauthorized": {"emails": []},
+    "credentials": {"usernames": {}}
+}
 
-for username, data in st.secrets["credentials"]["usernames"].items():
-    credentials["usernames"][username] = {
+# Cargar usuarios desde secrets
+for username, data in st.secrets["usernames"].items():
+    yaml_config["credentials"]["usernames"][username] = {
         "email": data["email"],
         "name": data["name"],
         "password": data["password"]
     }
 
-# Inicializar autenticador - usando las claves correctas
+# Convertir a string YAML
+yaml_string = yaml.dump(yaml_config)
+
+# Cargar el autenticador desde el YAML
 authenticator = stauth.Authenticate(
-    credentials,
-    st.secrets["cookie_name"],
-    st.secrets["cookie_key"],
-    st.secrets["cookie_expiry_days"]
+    yaml_string
 )
 
 # Mostrar login
@@ -42,7 +53,7 @@ st.sidebar.success(f"✅ Bienvenido **{name}**")
 authenticator.logout("Cerrar sesión", location="sidebar")
 
 # Restricción de dominio
-user_email = credentials["usernames"][username]["email"]
+user_email = yaml_config["credentials"]["usernames"][username]["email"]
 if not user_email.endswith("@ojoveterinario.es"):
     st.error(f"❌ Acceso denegado: {user_email} no está autorizado")
     st.stop()
