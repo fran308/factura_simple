@@ -1,22 +1,41 @@
+import streamlit as st
 import stripe
 from datetime import date
-import streamlit as st
 import streamlit_authenticator as stauth
+from yaml.loader import SafeLoader
+import yaml
 
-# 1. Configuración de página SIEMPRE primero
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
-# 2. Inicializar el autenticador directamente con st.secrets
-# La librería ahora puede leer el diccionario 'credentials' directamente
+# ===== AUTENTICACIÓN =====
+# Construir el diccionario de credenciales en el formato que espera la librería
+credentials = {
+    "usernames": {}
+}
+
+for username, data in st.secrets['credentials']['usernames'].items():
+    credentials["usernames"][username] = {
+        "email": data['email'],
+        "name": data['name'],
+        "password": data['password']
+    }
+
+# Configuración del cookie
+cookie_config = {
+    "name": st.secrets['cookie_name'],
+    "key": st.secrets['cookie_key'],
+    "expiry_days": st.secrets['cookie_expiry_days']
+}
+
+# Inicializar autenticador - ESTA es la sintaxis correcta
 authenticator = stauth.Authenticate(
-    st.secrets['credentials'],
-    st.secrets['cookie_name'],
-    st.secrets['cookie_key'],
-    st.secrets['cookie_expiry_days']
+    credentials,
+    cookie_config['name'],
+    cookie_config['key'],
+    cookie_config['expiry_days']
 )
 
-# 3. Renderizar el formulario de login
-# login() devuelve una tupla con la info
+# Mostrar login
 name, authentication_status, username = authenticator.login(location='main')
 
 if authentication_status is False:
@@ -24,20 +43,21 @@ if authentication_status is False:
     st.stop()
 
 if authentication_status is None:
-    st.warning('Por favor, introduce tu usuario y contraseña')
+    st.title("🔐 Veterinary Billing System")
+    st.caption("Secure payment link generator")
+    st.info('Por favor, ingresa tus credenciales en el formulario 👈')
     st.stop()
 
-# 4. Si llegamos aquí, está AUTENTICADO
-st.sidebar.success(f'✅ Bienvenido {name}')
-authenticator.logout('Cerrar sesión', 'sidebar')
+# Usuario autenticado
+st.sidebar.success(f'✅ Bienvenido **{name}**')
+authenticator.logout('Cerrar sesión', location='sidebar')
 
-# 5. Verificación de dominio (Doble seguridad)
-# Buscamos el email en el diccionario de credenciales usando el username
-user_email = st.secrets['credentials']['usernames'][username]['email']
-
-if not user_email.endswith('@ojoveterinario.es'):
-    st.error(f"❌ Acceso denegado: {user_email} no pertenece al dominio autorizado.")
+# Restricción de dominio
+user_data = credentials["usernames"][username]
+if not user_data["email"].endswith("@ojoveterinario.es"):
+    st.error(f"❌ Acceso denegado: {user_data['email']} no está autorizado")
     st.stop()
+
 
 # --- AQUÍ EMPIEZA TU APP DE STRIPE ---
 st.title("🐾 Vet Quick-Pay")
