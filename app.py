@@ -42,13 +42,18 @@ authenticator = stauth.Authenticate(
 authenticator.login()
 
 if st.session_state["authentication_status"]:
-    st.success(f"Bienvenido {st.session_state['name']}")
+    st.sidebar.success(f"✅ Bienvenido {st.session_state['name']}")
+    authenticator.logout("Cerrar sesión", "sidebar")
 
 elif st.session_state["authentication_status"] is False:
-    st.error("Usuario o contraseña incorrectos")
+    st.error("❌ Usuario o contraseña incorrectos")
+    st.stop()
 
 elif st.session_state["authentication_status"] is None:
+    st.title("🔐 Veterinary Billing System")
+    st.caption("Secure payment link generator")
     st.warning("Introduce usuario y contraseña")
+    st.stop()
 
 
 
