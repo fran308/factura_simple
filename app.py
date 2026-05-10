@@ -1,6 +1,7 @@
 import streamlit as st
 import stripe
 from datetime import date
+
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
 # ===== AUTHENTICATION BLOCK =====
