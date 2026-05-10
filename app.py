@@ -4,8 +4,8 @@ from datetime import date
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
 # ===== AUTHENTICATION BLOCK =====
-# This runs before anything else
-if "user" not in st.session_state or not st.session_state.user:
+# Check if user is logged in
+if not st.user.is_logged_in:
     st.title("🔐 Veterinary Billing System")
     st.caption("Secure payment link generator")
     
@@ -17,10 +17,10 @@ if "user" not in st.session_state or not st.session_state.user:
     st.stop()
 
 # If we reach here, user is authenticated
-user = st.session_state.user
+user = st.user
 
 # === RESTRICT TO @ojoveterinario.es DOMAIN ONLY ===
-user_email = user.get('email', '')
+user_email = user.email
 if not user_email.endswith("@ojoveterinario.es"):
     st.error("❌ Acceso denegado. Solo personal con correo @ojoveterinario.es puede usar este sistema.")
     st.caption(f"Has iniciado sesión con: {user_email}")
@@ -30,10 +30,11 @@ if not user_email.endswith("@ojoveterinario.es"):
     st.stop()
 
 # Show logged in user info
-st.sidebar.write(f"👤 {user.get('name', user_email)}")
+st.sidebar.write(f"👤 {user.name}")
 if st.sidebar.button("Logout"):
     st.logout()
     st.rerun()
+
 #========================================================================================Auth finished
 
 
