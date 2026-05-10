@@ -1,6 +1,69 @@
 import streamlit as st
 import stripe
 from datetime import date
+import streamlit_authenticator as stauth
+
+'''
+
+st.set_page_config(page_title="Vet Billing", layout="centered")
+
+# ===== AUTENTICACIÓN ===============================================================
+# Cargar credenciales desde secrets
+usernames = {}
+for user, data in st.secrets['credentials']['usernames'].items():
+    usernames[user] = {
+        'email': data['email'],
+        'name': data['name'],
+        'password': data['password']
+    }
+
+# Crear listas para el autenticador
+names = []
+usernames_list = []
+passwords = []
+emails = []
+
+for user, data in usernames.items():
+    names.append(data['name'])
+    usernames_list.append(user)
+    passwords.append(data['password'])
+    emails.append(data['email'])
+
+# Inicializar autenticador
+authenticator = stauth.Authenticate(
+    names,
+    usernames_list,
+    passwords,
+    st.secrets['cookie_name'],
+    st.secrets['cookie_key'],
+    st.secrets['cookie_expiry_days']
+)
+
+# Login
+name, auth_status, username = authenticator.login('main')
+
+if auth_status is False:
+    st.error('❌ Usuario o contraseña incorrectos')
+    st.stop()
+
+if auth_status is None:
+    st.title("🔐 Veterinary Billing System")
+    st.caption("Secure payment link generator")
+    st.info('Ingresa tus credenciales en el formulario 👈')
+    st.stop()
+
+# Autenticado
+st.sidebar.success(f'✅ Bienvenido {name}')
+authenticator.logout('Cerrar sesión', 'sidebar')
+
+# Restricción de dominio
+user_email = emails[usernames_list.index(username)]
+if not user_email.endswith('@ojoveterinario.es'):
+    st.error(f'❌ Acceso denegado: {user_email}')
+    st.stop()
+
+#====================================================================================
+'''
 
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
