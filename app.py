@@ -20,6 +20,8 @@ if not st.user.is_logged_in:
 # If we reach here, user is authenticated
 user = st.user
 
+st.write(f"DEBUG: User object is {user}") # This will show you what Streamlit sees
+
 # === RESTRICT TO @ojoveterinario.es DOMAIN ONLY ===
 user_email = user.email
 if not user_email.endswith("@ojoveterinario.es"):
