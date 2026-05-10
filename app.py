@@ -12,12 +12,12 @@ config = {
         "usernames": {
             "fran": {
                 "email": "fran@ojoveterinario.es",
-                "name": "Fran Gomez",
+                "name": "fran",
                 "password": st.secrets["usernames"]["fran"]["password"]
             },
             "contacto": {
                 "email": "contacto@ojoveterinario.es",
-                "name": "Contacto",
+                "name": "contacto",
                 "password": st.secrets["usernames"]["contacto"]["password"]
             }
         }
