@@ -2,6 +2,32 @@ import streamlit as st
 import stripe
 from datetime import date
 
+#================================================================================Auth
+
+# Must be at the very top of your app
+st.set_page_config(page_title="Vet Billing", layout="centered")
+
+# ===== AUTHENTICATION BLOCK =====
+# This runs before anything else
+if not st.experimental_user.get("is_logged_in", False):
+    st.title("🔐 Veterinary Billing System")
+    st.caption("Secure payment link generator")
+    
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        if st.button("🔑 Login with Google", use_container_width=True):
+            st.login("google")
+        st.caption("Only authorised clinic staff can access this system")
+    st.stop()  # CRITICAL: Stops here if not logged in
+
+# If we reach here, user is authenticated
+st.sidebar.write(f"👤 Logged in as: {st.experimental_user.name}")
+if st.sidebar.button("Logout"):
+    st.logout()
+
+#========================================================================================Auth finished
+
+
 # Load secrets from Streamlit Cloud dashboard
 stripe.api_key = st.secrets["STRIPE_SECRET_KEY"]
 TAX_21_ID = st.secrets["TAX_21_ID"]
