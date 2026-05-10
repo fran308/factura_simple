@@ -1,71 +1,46 @@
-import streamlit as st
 import stripe
 from datetime import date
+import streamlit as st
 import streamlit_authenticator as stauth
 
-
-
+# 1. Configuración de página SIEMPRE primero
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
-# ===== AUTENTICACIÓN ===============================================================
-# Cargar credenciales desde secrets
-usernames = {}
-for user, data in st.secrets['credentials']['usernames'].items():
-    usernames[user] = {
-        'email': data['email'],
-        'name': data['name'],
-        'password': data['password']
-    }
-
-# Crear listas para el autenticador
-names = []
-usernames_list = []
-passwords = []
-emails = []
-
-for user, data in usernames.items():
-    names.append(data['name'])
-    usernames_list.append(user)
-    passwords.append(data['password'])
-    emails.append(data['email'])
-
-# Inicializar autenticador
+# 2. Inicializar el autenticador directamente con st.secrets
+# La librería ahora puede leer el diccionario 'credentials' directamente
 authenticator = stauth.Authenticate(
-    names,
-    usernames_list,
-    passwords,
+    st.secrets['credentials'],
     st.secrets['cookie_name'],
     st.secrets['cookie_key'],
     st.secrets['cookie_expiry_days']
 )
 
-# Login
-name, auth_status, username = authenticator.login('main')
+# 3. Renderizar el formulario de login
+# login() devuelve una tupla con la info
+name, authentication_status, username = authenticator.login(location='main')
 
-if auth_status is False:
+if authentication_status is False:
     st.error('❌ Usuario o contraseña incorrectos')
     st.stop()
 
-if auth_status is None:
-    st.title("🔐 Veterinary Billing System")
-    st.caption("Secure payment link generator")
-    st.info('Ingresa tus credenciales en el formulario 👈')
+if authentication_status is None:
+    st.warning('Por favor, introduce tu usuario y contraseña')
     st.stop()
 
-# Autenticado
+# 4. Si llegamos aquí, está AUTENTICADO
 st.sidebar.success(f'✅ Bienvenido {name}')
 authenticator.logout('Cerrar sesión', 'sidebar')
 
-# Restricción de dominio
-user_email = emails[usernames_list.index(username)]
+# 5. Verificación de dominio (Doble seguridad)
+# Buscamos el email en el diccionario de credenciales usando el username
+user_email = st.secrets['credentials']['usernames'][username]['email']
+
 if not user_email.endswith('@ojoveterinario.es'):
-    st.error(f'❌ Acceso denegado: {user_email}')
+    st.error(f"❌ Acceso denegado: {user_email} no pertenece al dominio autorizado.")
     st.stop()
 
-#====================================================================================
-
-
-st.set_page_config(page_title="Vet Billing", layout="centered")
+# --- AQUÍ EMPIEZA TU APP DE STRIPE ---
+st.title("🐾 Vet Quick-Pay")
 
 # Load secrets from Streamlit Cloud dashboard
 stripe.api_key = st.secrets["STRIPE_SECRET_KEY"]
