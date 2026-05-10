@@ -152,11 +152,10 @@ if st.session_state.invoice_items:
                             line_items.append({
                                 "price_data": {
                                     "currency": "eur",
-                                    "unit_amount": int(item['net_price'] * 100),  # Net price in cents
+                                    "tax_behavior": "inclusive",
                                     "product_data": {"name": item['name']},
                                 },
                                 "quantity": 1,
-                                "tax_rates": [item['tax_id']],
                             })
                         
                         # Create payment link with invoice metadata
