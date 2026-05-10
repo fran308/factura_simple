@@ -5,7 +5,6 @@ from datetime import date
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
 # ===== AUTHENTICATION BLOCK =====
-# Check if user is logged in
 if not st.user.is_logged_in:
     st.title("🔐 Veterinary Billing System")
     st.caption("Secure payment link generator")
@@ -14,29 +13,24 @@ if not st.user.is_logged_in:
     with col2:
         if st.button("🔑 Login with Google", use_container_width=True):
             st.login("google")
-        st.caption("Only authorised clinic staff can access this system")
     st.stop()
 
-# If we reach here, user is authenticated
+# Get user info
 user = st.user
 
-st.write(f"DEBUG: User object is {user}") # This will show you what Streamlit sees
-
 # === RESTRICT TO @ojoveterinario.es DOMAIN ONLY ===
-user_email = user.email
-if not user_email.endswith("@ojoveterinario.es"):
-    st.error("❌ Acceso denegado. Solo personal con correo @ojoveterinario.es puede usar este sistema.")
-    st.caption(f"Has iniciado sesión con: {user_email}")
+if not user.email.endswith("@ojoveterinario.es"):
+    st.error(f"❌ Acceso denegado. {user.email} no está autorizado.")
     if st.button("Cerrar sesión"):
         st.logout()
-        st.rerun()
     st.stop()
 
-# Show logged in user info
-st.sidebar.write(f"👤 {user.name}")
-if st.sidebar.button("Logout"):
-    st.logout()
-    st.rerun()
+# Sidebar Logout
+with st.sidebar:
+    st.write(f"👤 {user.name}")
+    if st.button("Logout"):
+        st.logout()
+        st.stop() # Use stop instead of rerun for a cleaner exit
 
 #========================================================================================Auth finished
 
