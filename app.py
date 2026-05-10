@@ -4,33 +4,29 @@ from datetime import date
 
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
-# ===== AUTHENTICATION BLOCK =====
+
+# ===== AUTHENTICATION =====
 if not st.user.is_logged_in:
     st.title("🔐 Veterinary Billing System")
-    st.caption("Secure payment link generator")
-    
-    col1, col2, col3 = st.columns([1,2,1])
-    with col2:
-        if st.button("🔑 Login with Google", use_container_width=True):
-            st.login("google")
+    if st.button("Login with Google"):
+        st.login("google")
     st.stop()
 
-# Get user info
+# User is logged in
 user = st.user
 
-# === RESTRICT TO @ojoveterinario.es DOMAIN ONLY ===
+# Domain restriction
 if not user.email.endswith("@ojoveterinario.es"):
-    st.error(f"❌ Acceso denegado. {user.email} no está autorizado.")
-    if st.button("Cerrar sesión"):
+    st.error(f"Access denied: {user.email} is not authorized")
+    if st.button("Logout"):
         st.logout()
     st.stop()
 
-# Sidebar Logout
+# Sidebar
 with st.sidebar:
     st.write(f"👤 {user.name}")
-    if st.button("Logout"):
-        st.logout()
-        st.stop() # Use stop instead of rerun for a cleaner exit
+    st.button("Logout", on_click=st.logout)
+
 
 #========================================================================================Auth finished
 
