@@ -7,8 +7,8 @@ from io import StringIO
 
 st.set_page_config(page_title="Vet Billing", layout="centered")
 
-# ===== AUTENTICACIÓN - MÉTODO UNIVERSAL =====
-# Construir el archivo YAML en memoria desde secrets
+# ===== AUTENTICACIÓN =====
+
 yaml_config = {
     "cookie": {
         "expiry_days": st.secrets["cookie_expiry_days"],
@@ -27,16 +27,19 @@ for username, data in st.secrets["usernames"].items():
         "password": data["password"]
     }
 
-# Convertir a string YAML
-yaml_string = yaml.dump(yaml_config)
-
-# Cargar el autenticador desde el YAML
+# Crear autenticador
 authenticator = stauth.Authenticate(
-    yaml_string
+    yaml_config["credentials"],
+    yaml_config["cookie"]["name"],
+    yaml_config["cookie"]["key"],
+    yaml_config["cookie"]["expiry_days"],
 )
 
 # Mostrar login
-name, authentication_status, username = authenticator.login("main")
+name, authentication_status, username = authenticator.login(
+    "Login",
+    "main"
+)
 
 if authentication_status is False:
     st.error("❌ Usuario o contraseña incorrectos")
@@ -45,15 +48,16 @@ if authentication_status is False:
 if authentication_status is None:
     st.title("🔐 Veterinary Billing System")
     st.caption("Secure payment link generator")
-    st.info("Por favor, ingresa tus credenciales en el formulario 👈")
+    st.info("Por favor, ingresa tus credenciales 👇")
     st.stop()
 
 # Usuario autenticado
-st.sidebar.success(f"✅ Bienvenido **{name}**")
-authenticator.logout("Cerrar sesión", location="sidebar")
+st.sidebar.success(f"✅ Bienvenido {name}")
+authenticator.logout("Cerrar sesión", "sidebar")
 
 # Restricción de dominio
 user_email = yaml_config["credentials"]["usernames"][username]["email"]
+
 if not user_email.endswith("@ojoveterinario.es"):
     st.error(f"❌ Acceso denegado: {user_email} no está autorizado")
     st.stop()
