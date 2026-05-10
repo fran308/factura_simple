@@ -45,8 +45,6 @@ stripe.api_key = st.secrets["STRIPE_SECRET_KEY"]
 TAX_21_ID = st.secrets["TAX_21_ID"]
 TAX_10_ID = st.secrets["TAX_10_ID"]
 
-st.set_page_config(page_title="Vet Billing", layout="centered")
-
 # Mobile-friendly styling
 st.markdown("""
     <style>
