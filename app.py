@@ -27,12 +27,12 @@ cookie_config = {
     "expiry_days": st.secrets['cookie_expiry_days']
 }
 
-# Inicializar autenticador -
+# Inicializar autenticador - ESTA es la sintaxis correcta
 authenticator = stauth.Authenticate(
-    cookie_config['credentials'],
-    cookie_config['cookie']['name'],
-    cookie_config['cookie']['key'],
-    cookie_config['cookie']['expiry_days']
+    credentials,
+    cookie_config['name'],
+    cookie_config['key'],
+    cookie_config['expiry_days']
 )
 
 # Mostrar login
@@ -57,6 +57,7 @@ user_data = credentials["usernames"][username]
 if not user_data["email"].endswith("@ojoveterinario.es"):
     st.error(f"❌ Acceso denegado: {user_data['email']} no está autorizado")
     st.stop()
+
 
 
 # --- AQUÍ EMPIEZA TU APP DE STRIPE ---
