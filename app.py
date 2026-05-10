@@ -29,10 +29,10 @@ cookie_config = {
 
 # Inicializar autenticador - ESTA es la sintaxis correcta
 authenticator = stauth.Authenticate(
-    credentials,
-    cookie_config['name'],
-    cookie_config['key'],
-    cookie_config['expiry_days']
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days']
 )
 
 # Mostrar login
