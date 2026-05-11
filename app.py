@@ -236,7 +236,7 @@ if st.session_state.invoice_items:
                             mode="payment",
                             success_url="https://ojoveterinario.es",  # Update this
                             cancel_url="https://bbc.co.uk",    # Update this
-                            tax_id_collection={"enabled": True},  # Collect customer NIF
+                            tax_id_collection={"enabled": False},  # Collect customer NIF
                             metadata={
                                 "invoice_number": invoice_number,
                                 "invoice_date": invoice_date.isoformat(),
