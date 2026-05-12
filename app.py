@@ -58,7 +58,7 @@ elif st.session_state["authentication_status"] is None:
 
 
 # --- AQUÍ EMPIEZA TU APP DE STRIPE ---
-st.title("🐾 Vet Quick-Pay now")
+st.title("🐾 FacturaVET")
 
 # Load secrets from Streamlit Cloud dashboard
 stripe.api_key = st.secrets["STRIPE_SECRET_KEY"]
