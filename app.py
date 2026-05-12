@@ -233,8 +233,8 @@ if st.session_state.invoice_items:
                         checkout_session = stripe.checkout.Session.create(
                             line_items=line_items,
                             mode="payment",
-                            success_url="https://ojoveterinario.es",  # Update this
-                            cancel_url="https://bbc.co.uk",    # Update this
+                            success_url="https://ojoveterinario.es/thankyou-payment", 
+                            cancel_url="https://cancelled-payment",   
                             tax_id_collection={"enabled": False},  # Collect customer NIF
                             metadata={
                                 "invoice_number": invoice_number,
