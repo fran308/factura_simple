@@ -72,6 +72,7 @@ elif st.session_state["authentication_status"] is None:
     st.warning("Introduce usuario y contraseña")
     st.stop()
 
+username = st.session_state["username"]
 
 # =========================================================
 # STRIPE CONFIG
