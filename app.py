@@ -133,7 +133,7 @@ with st.form("add_product", clear_on_submit=True):
         vat_rate = 0.21 if vat == "21%" else 0.10
         net_price = calculate_net(price_with_vat, vat_rate)
         
-        tax_id = TAX_21_ID if vat == "21%" else TAX_10_ID
+        #tax_id = TAX_21_ID if vat == "21%" else TAX_10_ID
         
         st.session_state.invoice_items.append({
             "name": name,
