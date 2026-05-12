@@ -58,7 +58,7 @@ elif st.session_state["authentication_status"] is None:
 
 
 # --- AQUÍ EMPIEZA TU APP DE STRIPE ---
-st.title("🐾 FacturaVET")
+st.title("🐾 FacturaVET • Ojo Veterinario")
 
 # Load secrets from Streamlit Cloud dashboard
 stripe.api_key = st.secrets["STRIPE_SECRET_KEY"]
@@ -234,7 +234,7 @@ if st.session_state.invoice_items:
                             line_items=line_items,
                             mode="payment",
                             success_url="https://ojoveterinario.es/thankyou-payment", 
-                            cancel_url="https://cancelled-payment",   
+                            cancel_url="https://ojoveterinario.es/cancelled-payment",   
                             tax_id_collection={"enabled": False},  # Collect customer NIF
                             metadata={
                                 "invoice_number": invoice_number,
