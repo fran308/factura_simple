@@ -48,24 +48,30 @@ authenticator = stauth.Authenticate(
     config["cookie"]["expiry_days"]
 )
 
-name, authentication_status, username = authenticator.login(
-    "Login",
-    "main"
-)
+authenticator.login(location="main")
 
-if authentication_status:
-    st.sidebar.success(f"✅ Bienvenido {name}")
-    authenticator.logout("Cerrar sesión", "sidebar")
+if st.session_state["authentication_status"]:
+    st.sidebar.success(
+        f"✅ Bienvenido {st.session_state['name']}"
+    )
 
-elif authentication_status is False:
+    authenticator.logout(
+        "Cerrar sesión",
+        location="sidebar"
+    )
+
+elif st.session_state["authentication_status"] is False:
+
     st.error("❌ Usuario o contraseña incorrectos")
     st.stop()
 
-elif authentication_status is None:
+elif st.session_state["authentication_status"] is None:
+
     st.title("🔐 FacturaVET")
     st.caption("Secure veterinary payment link generator")
     st.warning("Introduce usuario y contraseña")
     st.stop()
+
 
 # =========================================================
 # STRIPE CONFIG
