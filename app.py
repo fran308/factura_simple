@@ -427,6 +427,7 @@ if st.session_state.invoice_items:
                                 "created_by": username,
                                 "client_name": st.session_state.get(f"client_name_{st.session_state.form_key}", ""),
                                 "client_nif": st.session_state.get(f"client_nif_{st.session_state.form_key}", ""),
+                                "client_address": st.session_state.get(f"client_address_{st.session_state.form_key}", ""),
                             }
                         )
 
