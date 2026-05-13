@@ -120,7 +120,10 @@ if "invoice_number" not in st.session_state:
 
 if "invoice_date" not in st.session_state:
     st.session_state.invoice_date = date.today()
-    
+
+if "reset_invoice" not in st.session_state:
+    st.session_state.reset_invoice = False
+
 # =========================================================
 # APP TITLE
 # =========================================================
@@ -153,6 +156,11 @@ def calculate_net(gross_price, vat_percentage):
 with st.sidebar:
 
     st.header("📄 Invoice Info")
+
+    # Handle reset
+    if st.session_state.reset_invoice:
+        st.session_state.invoice_number = ""
+        st.session_state.reset_invoice = False
 
     invoice_number = st.text_input(
         "Invoice number",
@@ -422,7 +430,7 @@ if st.session_state.invoice_items:
                         )
 
     # -----------------------------------------------------
-    # START NEW INVOICE (FIXED - Now works independently)
+    # START NEW INVOICE (FIXED)
     # -----------------------------------------------------
 
     with col2:
@@ -431,7 +439,7 @@ if st.session_state.invoice_items:
             use_container_width=True
         ):
             st.session_state.invoice_items = []
-            st.session_state.invoice_number = ""
+            st.session_state.reset_invoice = True
             st.session_state.invoice_date = date.today()
             st.rerun()
 
