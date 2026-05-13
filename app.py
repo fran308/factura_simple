@@ -121,8 +121,8 @@ if "invoice_number" not in st.session_state:
 if "invoice_date" not in st.session_state:
     st.session_state.invoice_date = date.today()
 
-if "reset_invoice" not in st.session_state:
-    st.session_state.reset_invoice = False
+if "form_key" not in st.session_state:
+    st.session_state.form_key = 0
 
 # =========================================================
 # APP TITLE
@@ -157,26 +157,26 @@ with st.sidebar:
 
     st.header("📄 Invoice Info")
 
-    # Handle reset
-    if st.session_state.reset_invoice:
-        st.session_state.invoice_number = ""
-        st.session_state.reset_invoice = False
-
     invoice_number = st.text_input(
         "Invoice number",
-        key="invoice_number",
-        placeholder="e.g. 2026-001"
+        key=f"invoice_number_{st.session_state.form_key}",
+        placeholder="e.g. 2026-001",
+        value=st.session_state.invoice_number if not st.session_state.form_key else ""
     )
 
     invoice_date = st.date_input(
         "Invoice date",
-        key="invoice_date"
+        key=f"invoice_date_{st.session_state.form_key}",
+        value=st.session_state.invoice_date if not st.session_state.form_key else date.today()
     )
 
     if invoice_number:
+        st.session_state.invoice_number = invoice_number
         st.success(f"Invoice #{invoice_number}")
     else:
         st.warning("⚠️ Enter invoice number")
+    
+    st.session_state.invoice_date = invoice_date
 
 # =========================================================
 # ADD PRODUCT / SERVICE
@@ -312,7 +312,7 @@ if st.session_state.invoice_items:
             use_container_width=True
         ):
 
-            if not invoice_number:
+            if not st.session_state.invoice_number:
 
                 st.error("❌ Enter invoice number first")
 
@@ -384,10 +384,10 @@ if st.session_state.invoice_items:
 
                             metadata={
 
-                                "invoice_number": invoice_number,
+                                "invoice_number": st.session_state.invoice_number,
 
                                 "invoice_date":
-                                    invoice_date.isoformat(),
+                                    st.session_state.invoice_date.isoformat(),
 
                                 "total_gross":
                                     str(round(total_gross, 2)),
@@ -405,7 +405,7 @@ if st.session_state.invoice_items:
 
                         st.success(
                             f"✅ Payment link ready "
-                            f"for Invoice #{invoice_number}"
+                            f"for Invoice #{st.session_state.invoice_number}"
                         )
 
                         st.info(
@@ -439,8 +439,7 @@ if st.session_state.invoice_items:
             use_container_width=True
         ):
             st.session_state.invoice_items = []
-            st.session_state.reset_invoice = True
-            st.session_state.invoice_date = date.today()
+            st.session_state.form_key += 1
             st.rerun()
 
     # -----------------------------------------------------
