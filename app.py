@@ -415,13 +415,11 @@ if st.session_state.invoice_items:
                             language="text"
                         )
 
-                        if st.button("🔄 Start new invoice"):
-
-                            use_container_width=True
+                        # FIXED: Button now properly clears items and resets invoice number
+                        if st.button("🔄 Start new invoice", key="start_new_invoice_after_stripe"):
                             st.session_state.invoice_items = []
                             st.session_state.invoice_number = ""
                             st.session_state.invoice_date = date.today()
-
                             st.rerun()
 
                     except Exception as e:
