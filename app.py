@@ -105,6 +105,15 @@ input, .stNumberInput input {
 
 st.title("🐾 FacturaVET")
 st.caption("Stripe processes payments securely • IVA handled internally")
+invoice_type = st.radio(
+    "Invoice type",
+    [
+        "B2C • Factura simplificada",
+        "B2C • Factura completa",
+        "B2B • Profesional con IRPF"
+    ],
+    horizontal=False
+)
 
 # =========================================================
 # SESSION STATE
@@ -112,6 +121,15 @@ st.caption("Stripe processes payments securely • IVA handled internally")
 
 if "invoice_items" not in st.session_state:
     st.session_state.invoice_items = []
+
+if "client_name" not in st.session_state:
+    st.session_state.client_name = ""
+
+if "client_nif" not in st.session_state:
+    st.session_state.client_nif = ""
+
+if "client_address" not in st.session_state:
+    st.session_state.client_address = ""
 
 # =========================================================
 # HELPERS
