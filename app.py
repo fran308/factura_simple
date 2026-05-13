@@ -235,19 +235,26 @@ with st.form("add_product", clear_on_submit=True):
             horizontal=True
         )
 
-    # =====================================================
-    # DISCOUNT SECTION
-    # =====================================================
+# =====================================================
+# OPTIONAL DISCOUNT
+# =====================================================
 
-    st.markdown("##### 💸 Optional discount")
+use_discount = st.checkbox(
+    "Apply discount"
+)
+
+discount_type = "No discount"
+discount_value = 0.0
+
+if use_discount:
 
     col3, col4 = st.columns(2)
 
     with col3:
+
         discount_type = st.selectbox(
             "Discount type",
             [
-                "No discount",
                 "Percentage (%)",
                 "Fixed amount (€)"
             ]
@@ -273,14 +280,6 @@ with st.form("add_product", clear_on_submit=True):
                 step=1.0,
                 format="%.2f"
             )
-
-        else:
-            discount_value = 0.0
-
-    submitted = st.form_submit_button(
-        "Add to invoice",
-        use_container_width=True
-    )
 
     # =====================================================
     # PROCESS ITEM
