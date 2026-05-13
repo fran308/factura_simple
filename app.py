@@ -172,7 +172,7 @@ with st.sidebar:
         value=st.session_state.invoice_date if not st.session_state.form_key else date.today()
     )
 
-      # =====================================================
+    # =====================================================
     # CLIENT DETAILS
     # =====================================================
 
@@ -181,21 +181,30 @@ with st.sidebar:
         st.divider()
         st.subheader("👤 Client details")
 
-        client_name = st.text_input(
-            "Full name / Company name",
-            key="client_name"
-        )
+        # =====================================================
+# CLIENT DETAILS (UPDATE THIS SECTION)
+# =====================================================
 
-        client_nif = st.text_input(
-            "Tax ID (DNI/NIF/CIF/NIE)",
-            key="client_nif"
-        )
+if requires_client_details:
 
-        client_address = st.text_area(
-            "Fiscal address",
-            key="client_address",
-            height=80
-        )
+    st.divider()
+    st.subheader("👤 Client details")
+
+    client_name = st.text_input(
+        "Full name / Company name",
+        key=f"client_name_{st.session_state.form_key}"
+    )
+
+     client_nif = st.text_input(
+        "Tax ID (DNI/NIF/CIF/NIE)",
+        key=f"client_nif_{st.session_state.form_key}"
+    )
+
+    client_address = st.text_area(
+        "Fiscal address",
+        key=f"client_address_{st.session_state.form_key}",
+        height=80
+    )
 
     if invoice_number:
         st.session_state.invoice_number = invoice_number
@@ -410,23 +419,14 @@ if st.session_state.invoice_items:
                             expires_at=expires_at,
 
                             metadata={
-
                                 "invoice_number": st.session_state.invoice_number,
-
-                                "invoice_date":
-                                    st.session_state.invoice_date.isoformat(),
-
-                                "total_gross":
-                                    str(round(total_gross, 2)),
-
-                                "total_net":
-                                    str(round(total_net, 2)),
-
-                                "total_vat":
-                                    str(round(total_vat, 2)),
-
-                                "created_by":
-                                    username
+                                "invoice_date": st.session_state.invoice_date.isoformat(),
+                                "total_gross": str(round(total_gross, 2)),
+                                "total_net": str(round(total_net, 2)),
+                                "total_vat": str(round(total_vat, 2)),
+                                "created_by": username,
+                                "client_name": st.session_state.get(f"client_name_{st.session_state.form_key}", ""),
+                                "client_nif": st.session_state.get(f"client_nif_{st.session_state.form_key}", ""),
                             }
                         )
 
