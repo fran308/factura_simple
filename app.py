@@ -349,7 +349,7 @@ if st.session_state.invoice_items:
                         # Expire after 48h
                         expires_at = int(
                             (
-                                datetime.utcnow() + timedelta(hours=48)
+                                datetime.utcnow() + timedelta(hours=23)
                             ).timestamp()
                         )
                         
