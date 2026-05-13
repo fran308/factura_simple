@@ -213,73 +213,35 @@ with st.form("add_product", clear_on_submit=True):
 
     st.subheader("➕ Add service or product")
 
-    name_input = st.text_input(
-        "Description",
-        placeholder="e.g. Ophthalmology consultation"
-    )
+    name_input = st.text_input("Description", placeholder="e.g. Ophthalmology consultation")
 
     col1, col2 = st.columns(2)
-
     with col1:
-        base_price = st.number_input(
-            "Base price before discount (€ IVA included)",
-            min_value=0.0,
-            step=1.0,
-            format="%.2f"
-        )
-
+        base_price = st.number_input("Base price (€ IVA included)", min_value=0.0, step=1.0, format="%.2f")
     with col2:
-        vat = st.radio(
-            "IVA Rate",
-            ["21%", "10%"],
-            horizontal=True
-        )
+        vat = st.radio("IVA Rate", ["21%", "10%"], horizontal=True)
 
-# =====================================================
-# OPTIONAL DISCOUNT
-# =====================================================
+    # Move Discount logic ABOVE the button
+    st.divider()
+    use_discount = st.checkbox("Apply discount")
+    
+    discount_type = "No discount"
+    discount_value = 0.0
+    
+    if use_discount:
+        col3, col4 = st.columns(2)
+        with col3:
+            discount_type = st.selectbox("Discount type", ["Percentage (%)", "Fixed amount (€)"])
+        with col4:
+            if discount_type == "Percentage (%)":
+                discount_value = st.number_input("Discount %", min_value=0.0, max_value=100.0, step=5.0)
+            elif discount_type == "Fixed amount (€)":
+                discount_value = st.number_input("Discount amount (€)", min_value=0.0, step=1.0)
 
-use_discount = st.checkbox(
-    "Apply discount"
-)
+    # NOW place the button at the bottom
+    submitted = st.form_submit_button("Add to Invoice", use_container_width=True)
 
-discount_type = "No discount"
-discount_value = 0.0
 
-if use_discount:
-
-    col3, col4 = st.columns(2)
-
-    with col3:
-
-        discount_type = st.selectbox(
-            "Discount type",
-            [
-                "Percentage (%)",
-                "Fixed amount (€)"
-            ]
-        )
-
-    with col4:
-
-        if discount_type == "Percentage (%)":
-
-            discount_value = st.number_input(
-                "Discount %",
-                min_value=0.0,
-                max_value=100.0,
-                step=5.0,
-                format="%.1f"
-            )
-
-        elif discount_type == "Fixed amount (€)":
-
-            discount_value = st.number_input(
-                "Discount amount (€)",
-                min_value=0.0,
-                step=1.0,
-                format="%.2f"
-            )
 
     # =====================================================
     # PROCESS ITEM
@@ -541,9 +503,9 @@ if st.session_state.invoice_items:
                                 "total_net": str(round(total_net, 2)),
                                 "total_vat": str(round(total_vat, 2)),
                                 "created_by": username,
-                                "client_name": st.session_state.get(f"client_name_{st.session_state.form_key}", ""),
-                                "client_nif": st.session_state.get(f"client_nif_{st.session_state.form_key}", ""),
-                                "client_address": st.session_state.get(f"client_address_{st.session_state.form_key}", ""),
+                                "client_name": st.session_state.client_name,
+                                "client_nif": st.session_state.client_nif,
+                                "client_address": st.session_state.client_address,
                             }
                         )
 
