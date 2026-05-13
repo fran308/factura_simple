@@ -210,9 +210,9 @@ with st.sidebar:
 # =========================================================
 
 # 1. Place Discount logic OUTSIDE and BEFORE the form for interactivity
+
 st.subheader("➕ Add service or product")
 
-# These will now trigger an immediate UI change
 use_discount = st.checkbox("Apply discount")
 discount_type = "No discount"
 discount_value = 0.0
@@ -227,7 +227,7 @@ if use_discount:
         elif discount_type == "Fixed amount (€)":
             discount_value = st.number_input("Discount amount (€)", min_value=0.0, step=1.0)
 
-# 2. Now start the form for the main product details
+# 2. Start the form
 with st.form("add_product", clear_on_submit=True):
 
     name_input = st.text_input("Description", placeholder="e.g. Ophthalmology consultation")
@@ -238,11 +238,13 @@ with st.form("add_product", clear_on_submit=True):
     with col2:
         vat = st.radio("IVA Rate", ["21%", "10%"], horizontal=True)
 
+    # This is the button you were missing:
     submitted = st.form_submit_button("Add to Invoice", use_container_width=True)
 
-    # 3. PROCESS ITEM (Inside the form)
+    # 3. PROCESS ITEM (This part handles the math and saving)
     if submitted and name_input.strip() != "":
-        # Logic remains the same, it uses the discount_type/value defined above
+        
+        # Calculate Discount amount
         if discount_type == "Percentage (%)":
             discount_amount = base_price * (discount_value / 100)
         elif discount_type == "Fixed amount (€)":
@@ -250,11 +252,15 @@ with st.form("add_product", clear_on_submit=True):
         else:
             discount_amount = 0.0
 
+        # Prevent negative totals
         final_gross_price = max(base_price - discount_amount, 0)
+        
+        # VAT Calculation
         vat_rate = 0.21 if vat == "21%" else 0.10
         net_price = calculate_net(final_gross_price, vat_rate)
         vat_amount = final_gross_price - net_price
 
+        # Save to Session State
         st.session_state.invoice_items.append({
             "name": name_input.strip(),
             "base_price": round(base_price, 2),
@@ -268,102 +274,7 @@ with st.form("add_product", clear_on_submit=True):
             "vat_amount": round(vat_amount, 2)
         })
         st.rerun()
-
-    submitted = st.form_submit_button("Add to Invoice", use_container_width=True)
-
-
-
-    # =====================================================
-    # PROCESS ITEM
-    # =====================================================
-
-    if submitted and name_input.strip() != "":
-
-        # -------------------------------------------------
-        # APPLY DISCOUNT
-        # -------------------------------------------------
-
-        if discount_type == "Percentage (%)":
-
-            discount_amount = (
-                base_price * (discount_value / 100)
-            )
-
-        elif discount_type == "Fixed amount (€)":
-
-            discount_amount = discount_value
-
-        else:
-
-            discount_amount = 0.0
-
-        # Prevent negative totals
-        final_gross_price = max(
-            base_price - discount_amount,
-            0
-        )
-
-        # -------------------------------------------------
-        # VAT CALCULATION
-        # -------------------------------------------------
-
-        vat_rate = 0.21 if vat == "21%" else 0.10
-
-        net_price = calculate_net(
-            final_gross_price,
-            vat_rate
-        )
-
-        vat_amount = final_gross_price - net_price
-
-        # -------------------------------------------------
-        # SAVE ITEM
-        # -------------------------------------------------
-
-        st.session_state.invoice_items.append({
-
-            "name": name_input.strip(),
-
-            "base_price": round(base_price, 2),
-
-            "discount_type": discount_type,
-
-            "discount_value": round(discount_value, 2),
-
-            "discount_amount": round(discount_amount, 2),
-
-            "gross_price": round(final_gross_price, 2),
-
-            "net_price": round(net_price, 2),
-
-            "vat": vat,
-
-            "vat_rate": vat_rate,
-
-            "vat_amount": round(vat_amount, 2)
-        })
-
-        # -------------------------------------------------
-        # SUCCESS MESSAGE
-        # -------------------------------------------------
-
-        if discount_amount > 0:
-
-            st.success(
-                f"✓ Added: {name_input} • "
-                f"€{final_gross_price:.2f} "
-                f"(discount applied: €{discount_amount:.2f})"
-            )
-
-        else:
-
-            st.success(
-                f"✓ Added: {name_input} - "
-                f"€{final_gross_price:.2f}"
-            )
-
-        st.rerun()
-
+   
 # =========================================================
 # CURRENT INVOICE
 # =========================================================
