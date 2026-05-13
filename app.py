@@ -290,7 +290,7 @@ if st.session_state.invoice_items:
     # ACTION BUTTONS
     # =====================================================
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     # -----------------------------------------------------
     # GENERATE STRIPE LINK
@@ -415,13 +415,6 @@ if st.session_state.invoice_items:
                             language="text"
                         )
 
-                        # FIXED: Button now properly clears items and resets invoice number
-                        if st.button("🔄 Start new invoice", key="start_new_invoice_after_stripe"):
-                            st.session_state.invoice_items = []
-                            st.session_state.invoice_number = ""
-                            st.session_state.invoice_date = date.today()
-                            st.rerun()
-
                     except Exception as e:
 
                         st.error(
@@ -429,11 +422,24 @@ if st.session_state.invoice_items:
                         )
 
     # -----------------------------------------------------
-    # CLEAR INVOICE
+    # START NEW INVOICE (FIXED - Now works independently)
     # -----------------------------------------------------
 
     with col2:
+        if st.button(
+            "🔄 Start new invoice",
+            use_container_width=True
+        ):
+            st.session_state.invoice_items = []
+            st.session_state.invoice_number = ""
+            st.session_state.invoice_date = date.today()
+            st.rerun()
 
+    # -----------------------------------------------------
+    # CLEAR ALL ITEMS
+    # -----------------------------------------------------
+
+    with col3:
         if st.button(
             "🗑 Clear all items",
             use_container_width=True
