@@ -196,7 +196,7 @@ with st.form("add_product", clear_on_submit=True):
         use_container_width=True
     )
 
-    if submitted and name_input and gross_price > 0:
+    if submitted and name_input.strip() != "":
 
         vat_rate = 0.21 if vat == "21%" else 0.10
 
