@@ -195,7 +195,7 @@ if requires_client_details:
         key=f"client_name_{st.session_state.form_key}"
     )
 
-     client_nif = st.text_input(
+    client_nif = st.text_input(
         "Tax ID (DNI/NIF/CIF/NIE)",
         key=f"client_nif_{st.session_state.form_key}"
     )
