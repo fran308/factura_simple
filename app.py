@@ -312,6 +312,10 @@ if st.session_state.invoice_items:
                         line_items = []
 
                         for item in st.session_state.invoice_items:
+                            # Skip zero-price informational items for Stripe
+                            if item["gross_price"] == 0:
+                                continue
+                            
 
                             unit_amount_cents = int(
                                 round(item["gross_price"] * 100)
