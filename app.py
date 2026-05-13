@@ -100,6 +100,28 @@ input, .stNumberInput input {
 """, unsafe_allow_html=True)
 
 # =========================================================
+# SESSION STATE
+# =========================================================
+
+if "invoice_items" not in st.session_state:
+    st.session_state.invoice_items = []
+
+if "client_name" not in st.session_state:
+    st.session_state.client_name = ""
+
+if "client_nif" not in st.session_state:
+    st.session_state.client_nif = ""
+
+if "client_address" not in st.session_state:
+    st.session_state.client_address = ""
+
+if "invoice_number" not in st.session_state:
+    st.session_state.invoice_number = ""
+
+if "invoice_date" not in st.session_state:
+    st.session_state.invoice_date = date.today()
+    
+# =========================================================
 # APP TITLE
 # =========================================================
 
@@ -115,21 +137,7 @@ invoice_type = st.radio(
     horizontal=False
 )
 
-# =========================================================
-# SESSION STATE
-# =========================================================
 
-if "invoice_items" not in st.session_state:
-    st.session_state.invoice_items = []
-
-if "client_name" not in st.session_state:
-    st.session_state.client_name = ""
-
-if "client_nif" not in st.session_state:
-    st.session_state.client_nif = ""
-
-if "client_address" not in st.session_state:
-    st.session_state.client_address = ""
 
 # =========================================================
 # HELPERS
@@ -148,12 +156,13 @@ with st.sidebar:
 
     invoice_number = st.text_input(
         "Invoice number",
+        key="invoice_number",
         placeholder="e.g. 2026-001"
     )
 
     invoice_date = st.date_input(
         "Invoice date",
-        value=date.today()
+        key="invoice_date"
     )
 
     if invoice_number:
@@ -406,10 +415,12 @@ if st.session_state.invoice_items:
                             language="text"
                         )
 
-                        if st.button(
-                            "🔄 Start new invoice"
-                        ):
+                        if st.button("🔄 Start new invoice"):
+
                             st.session_state.invoice_items = []
+                            st.session_state.invoice_number = ""
+                            st.session_state.invoice_date = date.today()
+
                             st.rerun()
 
                     except Exception as e:
