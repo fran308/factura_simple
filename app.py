@@ -417,6 +417,7 @@ if st.session_state.invoice_items:
 
                         if st.button("🔄 Start new invoice"):
 
+                            use_container_width=True
                             st.session_state.invoice_items = []
                             st.session_state.invoice_number = ""
                             st.session_state.invoice_date = date.today()
