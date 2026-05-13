@@ -178,15 +178,6 @@ with st.sidebar:
 
     if requires_client_details:
 
-        st.divider()
-        st.subheader("👤 Client details")
-
-        # =====================================================
-# CLIENT DETAILS (UPDATE THIS SECTION)
-# =====================================================
-
-if requires_client_details:
-
     st.divider()
     st.subheader("👤 Client details")
 
