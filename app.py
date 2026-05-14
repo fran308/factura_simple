@@ -130,6 +130,7 @@ if "client_address" not in st.session_state:
 # =========================================================
 
 def calculate_net(gross_price, vat_percentage):
+
     return gross_price / (1 + vat_percentage)
 
 # =========================================================
@@ -156,6 +157,10 @@ requires_client_details = (
     invoice_type != "B2C • Factura simplificada"
 )
 
+is_b2b = (
+    invoice_type == "B2B • Profesional con IRPF"
+)
+
 # =========================================================
 # SIDEBAR
 # =========================================================
@@ -177,16 +182,8 @@ with st.sidebar:
         value=date.today()
     )
 
-    # -----------------------------------------------------
-    # SAVE SESSION STATE
-    # -----------------------------------------------------
-
     st.session_state.invoice_number = invoice_number
     st.session_state.invoice_date = invoice_date
-
-    # -----------------------------------------------------
-    # INVOICE WARNING
-    # -----------------------------------------------------
 
     if invoice_number:
 
@@ -225,10 +222,6 @@ with st.sidebar:
             key=f"client_address_{st.session_state.form_key}",
             height=80
         )
-
-        # -------------------------------------------------
-        # SAVE CLIENT DETAILS TO SESSION STATE
-        # -------------------------------------------------
 
         st.session_state.client_name = client_name
         st.session_state.client_nif = client_nif
@@ -284,6 +277,10 @@ with st.expander("💸 Optional discount"):
                     format="%.2f"
                 )
 
+# =========================================================
+# PRODUCT FORM
+# =========================================================
+
 with st.form("add_product", clear_on_submit=True):
 
     name_input = st.text_input(
@@ -322,7 +319,7 @@ with st.form("add_product", clear_on_submit=True):
     if submitted and name_input.strip() != "":
 
         # -------------------------------------------------
-        # DISCOUNT CALCULATION
+        # DISCOUNT
         # -------------------------------------------------
 
         if discount_type == "Percentage (%)":
@@ -345,7 +342,7 @@ with st.form("add_product", clear_on_submit=True):
         )
 
         # -------------------------------------------------
-        # VAT CALCULATION
+        # VAT
         # -------------------------------------------------
 
         vat_rate = 0.21 if vat == "21%" else 0.10
@@ -432,9 +429,7 @@ if st.session_state.invoice_items:
 
         with col3:
 
-            st.write(
-                item["vat"]
-            )
+            st.write(item["vat"])
 
         with col4:
 
@@ -471,46 +466,49 @@ if st.session_state.invoice_items:
     )
 
     # =====================================================
-    # IRPF CALCULATION (B2B ONLY)
+    # IRPF
     # =====================================================
-    
+
     irpf_total = 0
     final_payable = total_gross
-    
-    if invoice_type == "B2B • Profesional con IRPF":
-    
-        irpf_total = round(total_net * 0.15, 2)
-    
+
+    if is_b2b:
+
+        irpf_total = round(
+            total_net * 0.15,
+            2
+        )
+
         final_payable = round(
             total_gross - irpf_total,
             2
         )
 
+    # =====================================================
+    # TOTAL DISPLAY
+    # =====================================================
+
     st.divider()
 
-    if invoice_type == "B2B • Profesional con IRPF":
-    
+    if is_b2b:
+
         st.markdown(
             f"### 💰 Amount company pays: €{final_payable:.2f}"
         )
-    
-    else:
-    
-        st.markdown(
-            f"### 💰 Total client pays: €{total_gross:.2f}"
-        )
 
-    if invoice_type == "B2B • Profesional con IRPF":
-    
         st.caption(
             f"Base imponible: €{total_net:.2f} | "
             f"IVA 21%: €{total_vat_21:.2f} | "
             f"IVA 10%: €{total_vat_10:.2f} | "
             f"IRPF 15%: -€{irpf_total:.2f}"
         )
-    
+
     else:
-    
+
+        st.markdown(
+            f"### 💰 Total client pays: €{total_gross:.2f}"
+        )
+
         st.caption(
             f"Net: €{total_net:.2f} | "
             f"IVA 21%: €{total_vat_21:.2f} | "
@@ -549,10 +547,6 @@ if st.session_state.invoice_items:
 
             else:
 
-                # -------------------------------------------------
-                # PAYABLE ITEMS CHECK
-                # -------------------------------------------------
-
                 payable_items = [
 
                     item for item
@@ -577,32 +571,11 @@ if st.session_state.invoice_items:
 
                         line_items = []
 
-                        for item in payable_items:
+                        # -----------------------------
+                        # B2B WITH IRPF
+                        # -----------------------------
 
-                            unit_amount_cents = int(
-                                round(
-                                    item["gross_price"] * 100
-                                )
-                            )
-
-                          # =====================================================
-                          # APPLY IRPF REDUCTION TO STRIPE TOTAL
-                          # =====================================================
-                          
-                        if invoice_type == "B2B • Profesional con IRPF":
-                          
-                            line_items = [{
-                              "price_data": {
-                                  "currency": "eur",
-                                  "unit_amount": int(round(final_payable * 100)),
-                                  "product_data": {
-                                      "name": (
-                                          f"Invoice "
-                                          f"{st.session_state.invoice_number}"                                          )
-                                      },
-                                  },
-                                  "quantity": 1,
-                              }]
+                        if is_b2b:
 
                             line_items.append({
 
@@ -610,23 +583,59 @@ if st.session_state.invoice_items:
 
                                     "currency": "eur",
 
-                                    "unit_amount":
-                                        unit_amount_cents,
+                                    "unit_amount": int(
+                                        round(final_payable * 100)
+                                    ),
 
                                     "product_data": {
 
-                                        "name":
-                                            f"{item['name']} "
-                                            "(IVA incluido)"
+                                        "name": (
+                                            f"Invoice "
+                                            f"{st.session_state.invoice_number}"
+                                        )
                                     },
                                 },
 
                                 "quantity": 1,
                             })
 
-                        # -----------------------------------------
-                        # EXPIRE LINK
-                        # -----------------------------------------
+                        # -----------------------------
+                        # NORMAL INVOICES
+                        # -----------------------------
+
+                        else:
+
+                            for item in payable_items:
+
+                                unit_amount_cents = int(
+                                    round(
+                                        item["gross_price"] * 100
+                                    )
+                                )
+
+                                line_items.append({
+
+                                    "price_data": {
+
+                                        "currency": "eur",
+
+                                        "unit_amount":
+                                            unit_amount_cents,
+
+                                        "product_data": {
+
+                                            "name":
+                                                f"{item['name']} "
+                                                "(IVA incluido)"
+                                        },
+                                    },
+
+                                    "quantity": 1,
+                                })
+
+                        # -----------------------------
+                        # LINK EXPIRATION
+                        # -----------------------------
 
                         expires_at = int(
 
@@ -636,9 +645,9 @@ if st.session_state.invoice_items:
                             ).timestamp()
                         )
 
-                        # -----------------------------------------
+                        # -----------------------------
                         # CREATE STRIPE SESSION
-                        # -----------------------------------------
+                        # -----------------------------
 
                         checkout_session = stripe.checkout.Session.create(
 
@@ -683,6 +692,12 @@ if st.session_state.invoice_items:
                                 "total_vat":
                                     str(round(total_vat, 2)),
 
+                                "irpf_total":
+                                    str(round(irpf_total, 2)),
+
+                                "final_payable":
+                                    str(round(final_payable, 2)),
+
                                 "created_by":
                                     username,
 
@@ -703,10 +718,19 @@ if st.session_state.invoice_items:
                             f"#{st.session_state.invoice_number}"
                         )
 
-                        st.info(
-                            f"Client will pay "
-                            f"€{total_gross:.2f}"
-                        )
+                        if is_b2b:
+
+                            st.info(
+                                f"Company will pay "
+                                f"€{final_payable:.2f}"
+                            )
+
+                        else:
+
+                            st.info(
+                                f"Client will pay "
+                                f"€{total_gross:.2f}"
+                            )
 
                         st.markdown(
                             "**Send this secure payment "
@@ -736,6 +760,7 @@ if st.session_state.invoice_items:
         ):
 
             st.session_state.invoice_items = []
+
             st.session_state.form_key += 1
 
             st.rerun()
