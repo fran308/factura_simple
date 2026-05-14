@@ -301,12 +301,28 @@ with st.form("add_product", clear_on_submit=True):
         )
 
     with col2:
-
-        vat = st.radio(
-            "IVA Rate",
-            ["21%", "10%"],
-            horizontal=True
-        )
+        
+        if is_b2b:
+        
+            vat = st.radio(
+                "IVA Rate",
+                ["21%", "10%"],
+                index=0,
+                horizontal=True,
+                disabled=True
+            )
+        
+            st.caption(
+                "🔒 B2B professional invoices use 21% IVA"
+            )
+        
+        else:
+        
+            vat = st.radio(
+                "IVA Rate",
+                ["21%", "10%"],
+                horizontal=True
+            )
 
     submitted = st.form_submit_button(
         "Add to invoice",
