@@ -589,17 +589,16 @@ if st.session_state.invoice_items:
                           # APPLY IRPF REDUCTION TO STRIPE TOTAL
                           # =====================================================
                           
-                          if invoice_type == "B2B • Profesional con IRPF":
+                        if invoice_type == "B2B • Profesional con IRPF":
                           
-                              line_items = [{
-                                  "price_data": {
-                                      "currency": "eur",
-                                      "unit_amount": int(round(final_payable * 100)),
-                                      "product_data": {
-                                          "name": (
-                                              f"Invoice "
-                                              f"{st.session_state.invoice_number}"
-                                          )
+                            line_items = [{
+                              "price_data": {
+                                  "currency": "eur",
+                                  "unit_amount": int(round(final_payable * 100)),
+                                  "product_data": {
+                                      "name": (
+                                          f"Invoice "
+                                          f"{st.session_state.invoice_number}"                                          )
                                       },
                                   },
                                   "quantity": 1,
