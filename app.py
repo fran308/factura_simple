@@ -150,7 +150,8 @@ invoice_type = st.radio(
         "B2C • Factura completa",
         "B2B • Profesional con IRPF"
     ],
-    horizontal=False
+    horizontal=False,
+    disabled=len(st.session_state.invoice_items) > 0
 )
 
 requires_client_details = (
