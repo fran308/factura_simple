@@ -101,29 +101,7 @@ load_css()
 # SESSION STATE
 # =========================================================
 
-if "operation_date" not in st.session_state:
-    st.session_state.operation_date = date.today()
-    
-if "invoice_items" not in st.session_state:
-    st.session_state.invoice_items = []
-
-if "invoice_number" not in st.session_state:
-    st.session_state.invoice_number = ""
-
-if "invoice_date" not in st.session_state:
-    st.session_state.invoice_date = date.today()
-
-if "form_key" not in st.session_state:
-    st.session_state.form_key = 0
-
-if "client_name" not in st.session_state:
-    st.session_state.client_name = ""
-
-if "client_nif" not in st.session_state:
-    st.session_state.client_nif = ""
-
-if "client_address" not in st.session_state:
-    st.session_state.client_address = ""
+initialize_session_state()
 
 # =========================================================
 # APP TITLE
