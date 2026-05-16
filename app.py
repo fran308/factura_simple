@@ -247,49 +247,6 @@ with st.sidebar:
 
 st.subheader("➕ Add service or product")
 
-with st.expander("💸 Optional discount"):
-
-    use_discount = st.checkbox(
-        "Apply discount"
-    )
-
-    discount_type = "No discount"
-    discount_value = 0.0
-
-    if use_discount:
-
-        col3, col4 = st.columns(2)
-
-        with col3:
-
-            discount_type = st.selectbox(
-                "Discount type",
-                [
-                    "Percentage (%)",
-                    "Fixed amount (€)"
-                ]
-            )
-
-        with col4:
-
-            if discount_type == "Percentage (%)":
-
-                discount_value = st.number_input(
-                    "Discount %",
-                    min_value=0.0,
-                    max_value=100.0,
-                    step=5.0,
-                    format="%.1f"
-                )
-
-            elif discount_type == "Fixed amount (€)":
-
-                discount_value = st.number_input(
-                    "Discount amount (€)",
-                    min_value=0.0,
-                    step=1.0,
-                    format="%.2f"
-                )
 
 # =========================================================
 # PRODUCT FORM
@@ -312,6 +269,51 @@ with st.form("add_product", clear_on_submit=True):
             step=1.0,
             format="%.2f"
         )
+
+    with st.expander("💸 Optional discount"):
+    
+        use_discount = st.checkbox(
+            "Apply discount"
+        )
+    
+        discount_type = "No discount"
+        discount_value = 0.0
+    
+        if use_discount:
+    
+            col3, col4 = st.columns(2)
+    
+            with col3:
+    
+                discount_type = st.selectbox(
+                    "Discount type",
+                    [
+                        "Percentage (%)",
+                        "Fixed amount (€)"
+                    ]
+                )
+
+        with col4:
+
+            if discount_type == "Percentage (%)":
+
+                discount_value = st.number_input(
+                    "Discount %",
+                    min_value=0.0,
+                    max_value=100.0,
+                    step=5.0,
+                    format="%.1f"
+                )
+
+            elif discount_type == "Fixed amount (€)":
+
+                discount_value = st.number_input(
+                    "Discount amount (€)",
+                    min_value=0.0,
+                    step=1.0,
+                    format="%.2f"
+                )
+
 
     with col2:
         
