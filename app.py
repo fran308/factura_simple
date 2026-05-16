@@ -226,17 +226,17 @@ st.session_state.operation_date = operation_date
 
 st.session_state.invoice_number = invoice_number
 
-    if invoice_number:
+if invoice_number:
 
-        st.success(
-            f"Invoice #{invoice_number}"
-        )
+    st.success(
+        f"Invoice #{invoice_number}"
+    )
 
-    else:
+else:
 
-        st.warning(
-            "⚠️ Enter invoice number"
-        )
+    st.warning(
+        "⚠️ Enter invoice number"
+    )
 
     # -----------------------------------------------------
     # CLIENT DETAILS
