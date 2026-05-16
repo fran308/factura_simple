@@ -251,6 +251,43 @@ with st.sidebar:
 st.subheader("➕ Add service or product")
 
 # =========================================================
+# OPTIONAL DISCOUNT
+# =========================================================
+
+with st.expander("💸 Optional discount"):
+
+    discount_type = st.selectbox(
+        "Discount type",
+        [
+            "No discount",
+            "Percentage (%)",
+            "Fixed amount (€)"
+        ],
+        index=0
+    )
+
+    discount_value = 0.0
+
+    if discount_type == "Percentage (%)":
+
+        discount_value = st.number_input(
+            "Discount %",
+            min_value=0.0,
+            max_value=100.0,
+            step=5.0,
+            format="%.1f"
+        )
+
+    elif discount_type == "Fixed amount (€)":
+
+        discount_value = st.number_input(
+            "Discount amount (€)",
+            min_value=0.0,
+            step=1.0,
+            format="%.2f"
+        )
+
+# =========================================================
 # PRODUCT FORM
 # =========================================================
 
@@ -295,47 +332,6 @@ with st.form("add_product", clear_on_submit=True):
                 ["21%", "10%"],
                 horizontal=True
             )
-
-    # =========================================================
-    # OPTIONAL DISCOUNT
-    # =========================================================
-    
-    with st.expander("💸 Optional discount"):
-    
-        discount_type = st.selectbox(
-            "Discount type",
-            [
-                "No discount",
-                "Percentage (%)",
-                "Fixed amount (€)"
-            ],
-            index=0
-        )
-    
-        discount_value = 0.0
-    
-        if discount_type == "Percentage (%)":
-    
-            discount_value = st.number_input(
-                "Discount %",
-                min_value=0.0,
-                max_value=100.0,
-                step=5.0,
-                format="%.1f"
-            )
-    
-        elif discount_type == "Fixed amount (€)":
-    
-            discount_value = st.number_input(
-                "Discount amount (€)",
-                min_value=0.0,
-                step=1.0,
-                format="%.2f"
-            )
-
-    # -----------------------------------------------------
-    # SUBMIT BUTTON
-    # -----------------------------------------------------
 
     submitted = st.form_submit_button(
         "Add to invoice",
@@ -535,10 +531,6 @@ if st.session_state.invoice_items:
 
                         line_items = []
 
-                        # -----------------------------
-                        # B2B WITH IRPF
-                        # -----------------------------
-
                         if is_b2b:
 
                             line_items.append({
@@ -562,10 +554,6 @@ if st.session_state.invoice_items:
 
                                 "quantity": 1,
                             })
-
-                        # -----------------------------
-                        # NORMAL INVOICES
-                        # -----------------------------
 
                         else:
 
@@ -597,10 +585,6 @@ if st.session_state.invoice_items:
                                     "quantity": 1,
                                 })
 
-                        # -----------------------------
-                        # LINK EXPIRATION
-                        # -----------------------------
-
                         expires_at = int(
 
                             (
@@ -608,10 +592,6 @@ if st.session_state.invoice_items:
                                 + timedelta(hours=23)
                             ).timestamp()
                         )
-
-                        # -----------------------------
-                        # CREATE STRIPE SESSION
-                        # -----------------------------
 
                         checkout_session = stripe.checkout.Session.create(
 
