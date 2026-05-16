@@ -95,20 +95,7 @@ stripe.api_key = st.secrets["STRIPE_SECRET_KEY"]
 # CUSTOM CSS
 # =========================================================
 
-st.markdown("""
-<style>
-
-.stButton button {
-    font-size: 18px !important;
-    padding: 0.6rem !important;
-}
-
-input, .stNumberInput input {
-    font-size: 16px !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
+load_css()
 
 # =========================================================
 # SESSION STATE
