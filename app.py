@@ -308,7 +308,8 @@ with st.form("add_product", clear_on_submit=True):
                 "No discount",
                 "Percentage (%)",
                 "Fixed amount (€)"
-            ]
+            ],
+            index=0
         )
     
         discount_value = 0.0
