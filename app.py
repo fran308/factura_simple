@@ -348,17 +348,17 @@ with st.form("add_product", clear_on_submit=True):
 
     if submitted and name_input.strip() != "":
 
-    item = calculate_invoice_item(
-    name=name_input,
-    base_price=base_price,
-    vat=vat,
-    discount_type=discount_type,
-    discount_value=discount_value
-    )
-    
-    st.session_state.invoice_items.append(item)
-    
-    st.rerun()
+        item = calculate_invoice_item(
+        name=name_input,
+        base_price=base_price,
+        vat=vat,
+        discount_type=discount_type,
+        discount_value=discount_value
+        )
+        
+        st.session_state.invoice_items.append(item)
+        
+        st.rerun()
 
 
 # =========================================================
