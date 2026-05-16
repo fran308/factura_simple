@@ -108,6 +108,9 @@ load_css()
 
 initialize_session_state()
 
+if "discount_key" not in st.session_state:
+    st.session_state.discount_key = 0
+
 # =========================================================
 # APP TITLE
 # =========================================================
@@ -263,7 +266,7 @@ with st.expander("💸 Optional discount"):
             "Percentage (%)",
             "Fixed amount (€)"
         ],
-        key="discount_type"
+        key=f"discount_type_{st.session_state.discount_key}"
     )
 
     if discount_type == "Percentage (%)":
@@ -274,7 +277,7 @@ with st.expander("💸 Optional discount"):
             max_value=100.0,
             step=5.0,
             format="%.1f",
-            key="discount_value"
+            key=f"discount_value_{st.session_state.discount_key}"
         )
 
     elif discount_type == "Fixed amount (€)":
@@ -284,7 +287,7 @@ with st.expander("💸 Optional discount"):
             min_value=0.0,
             step=1.0,
             format="%.2f",
-            key="discount_value"
+            key=f"discount_value_{st.session_state.discount_key}"
         )
 
     else:
@@ -357,11 +360,7 @@ with st.form("add_product", clear_on_submit=True):
         )
 
         st.session_state.invoice_items.append(item)
-
-        # RESET DISCOUNT UI
-
-        st.session_state.discount_type = "No discount"
-        st.session_state.discount_value = 0.0
+        st.session_state.discount_key += 1
 
         st.rerun()
 
