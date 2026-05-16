@@ -180,9 +180,9 @@ with st.sidebar:
         value=""
     )
 
-# -----------------------------------------------------
-# FECHA DE EMISIÓN (AUTO)
-# -----------------------------------------------------
+    # -----------------------------------------------------
+    # FECHA DE EMISIÓN (AUTO)
+    # -----------------------------------------------------
 
     invoice_date = date.today()
     
@@ -220,53 +220,53 @@ with st.sidebar:
     
     st.session_state.operation_date = operation_date
 
-# -----------------------------------------------------
-# SAVE INVOICE NUMBER
-# -----------------------------------------------------
+    # -----------------------------------------------------
+    # SAVE INVOICE NUMBER
+    # -----------------------------------------------------
+    
+    st.session_state.invoice_number = invoice_number
+    
+    if invoice_number:
+    
+        st.success(
+            f"Invoice #{invoice_number}"
+        )
+    
+    else:
+    
+        st.warning(
+            "⚠️ Enter invoice number"
+        )
 
-st.session_state.invoice_number = invoice_number
-
-if invoice_number:
-
-    st.success(
-        f"Invoice #{invoice_number}"
-    )
-
-else:
-
-    st.warning(
-        "⚠️ Enter invoice number"
-    )
-
-# -----------------------------------------------------
-# CLIENT DETAILS
-# -----------------------------------------------------
-
-if requires_client_details:
-
-    st.divider()
-
-    st.subheader("👤 Client details")
-
-    client_name = st.text_input(
-        "Full name / Company name",
-        key=f"client_name_{st.session_state.form_key}"
-    )
-
-    client_nif = st.text_input(
-        "Tax ID (DNI/NIF/CIF/NIE)",
-        key=f"client_nif_{st.session_state.form_key}"
-    )
-
-    client_address = st.text_area(
-        "Fiscal address",
-        key=f"client_address_{st.session_state.form_key}",
-        height=80
-    )
-
-    st.session_state.client_name = client_name
-    st.session_state.client_nif = client_nif
-    st.session_state.client_address = client_address
+    # -----------------------------------------------------
+    # CLIENT DETAILS
+    # -----------------------------------------------------
+    
+    if requires_client_details:
+    
+        st.divider()
+    
+        st.subheader("👤 Client details")
+    
+        client_name = st.text_input(
+            "Full name / Company name",
+            key=f"client_name_{st.session_state.form_key}"
+        )
+    
+        client_nif = st.text_input(
+            "Tax ID (DNI/NIF/CIF/NIE)",
+            key=f"client_nif_{st.session_state.form_key}"
+        )
+    
+        client_address = st.text_area(
+            "Fiscal address",
+            key=f"client_address_{st.session_state.form_key}",
+            height=80
+        )
+    
+        st.session_state.client_name = client_name
+        st.session_state.client_nif = client_nif
+        st.session_state.client_address = client_address
 
 # =========================================================
 # ADD PRODUCT / SERVICE
