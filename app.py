@@ -11,7 +11,6 @@ import streamlit_authenticator as stauth
 
 from styles import load_css
 from session_state import initialize_session_state
-from helpers import calculate_net
 
 from calculations import (
     calculate_invoice_item,
@@ -98,7 +97,7 @@ username = st.session_state["username"]
 stripe.api_key = st.secrets["STRIPE_SECRET_KEY"]
 
 # =========================================================
-# CUSTOM CSS
+# LOAD CSS
 # =========================================================
 
 load_css()
@@ -118,6 +117,10 @@ st.title("🐾 FacturaVET")
 st.caption(
     "Stripe processes payments securely • IVA handled internally"
 )
+
+# =========================================================
+# INVOICE TYPE
+# =========================================================
 
 invoice_type = st.radio(
     "Invoice type",
@@ -154,29 +157,29 @@ with st.sidebar:
     )
 
     # -----------------------------------------------------
-    # FECHA DE EMISIÓN (AUTO)
+    # FECHA DE EMISIÓN
     # -----------------------------------------------------
 
     invoice_date = date.today()
-    
+
     st.date_input(
         "Fecha de emisión",
         value=invoice_date,
         disabled=True
     )
-    
+
     st.session_state.invoice_date = invoice_date
-    
+
     # -----------------------------------------------------
     # FECHA DE OPERACIÓN
     # -----------------------------------------------------
-    
+
     show_operation_date = (
         invoice_type != "B2C • Factura simplificada"
     )
-    
+
     if show_operation_date:
-    
+
         operation_date = st.date_input(
             "Fecha de operación",
             key=f"operation_date_{st.session_state.form_key}",
@@ -186,27 +189,27 @@ with st.sidebar:
                 "was performed on a different day"
             )
         )
-    
+
     else:
-    
+
         operation_date = invoice_date
-    
+
     st.session_state.operation_date = operation_date
 
     # -----------------------------------------------------
     # SAVE INVOICE NUMBER
     # -----------------------------------------------------
-    
+
     st.session_state.invoice_number = invoice_number
-    
+
     if invoice_number:
-    
+
         st.success(
             f"Invoice #{invoice_number}"
         )
-    
+
     else:
-    
+
         st.warning(
             "⚠️ Enter invoice number"
         )
@@ -214,29 +217,29 @@ with st.sidebar:
     # -----------------------------------------------------
     # CLIENT DETAILS
     # -----------------------------------------------------
-    
+
     if requires_client_details:
-    
+
         st.divider()
-    
+
         st.subheader("👤 Client details")
-    
+
         client_name = st.text_input(
             "Full name / Company name",
             key=f"client_name_{st.session_state.form_key}"
         )
-    
+
         client_nif = st.text_input(
             "Tax ID (DNI/NIF/CIF/NIE)",
             key=f"client_nif_{st.session_state.form_key}"
         )
-    
+
         client_address = st.text_area(
             "Fiscal address",
             key=f"client_address_{st.session_state.form_key}",
             height=80
         )
-    
+
         st.session_state.client_name = client_name
         st.session_state.client_nif = client_nif
         st.session_state.client_address = client_address
@@ -246,7 +249,6 @@ with st.sidebar:
 # =========================================================
 
 st.subheader("➕ Add service or product")
-
 
 # =========================================================
 # PRODUCT FORM
@@ -270,21 +272,49 @@ with st.form("add_product", clear_on_submit=True):
             format="%.2f"
         )
 
+    with col2:
+
+        if is_b2b:
+
+            vat = st.radio(
+                "IVA Rate",
+                ["21%", "10%"],
+                index=0,
+                horizontal=True,
+                disabled=True
+            )
+
+            st.caption(
+                "🔒 B2B professional invoices use 21% IVA"
+            )
+
+        else:
+
+            vat = st.radio(
+                "IVA Rate",
+                ["21%", "10%"],
+                horizontal=True
+            )
+
+    # -----------------------------------------------------
+    # DISCOUNTS
+    # -----------------------------------------------------
+
     with st.expander("💸 Optional discount"):
-    
+
         use_discount = st.checkbox(
             "Apply discount"
         )
-    
+
         discount_type = "No discount"
         discount_value = 0.0
-    
+
         if use_discount:
-    
+
             col3, col4 = st.columns(2)
-    
+
             with col3:
-    
+
                 discount_type = st.selectbox(
                     "Discount type",
                     [
@@ -293,51 +323,30 @@ with st.form("add_product", clear_on_submit=True):
                     ]
                 )
 
-        with col4:
+            with col4:
 
-            if discount_type == "Percentage (%)":
+                if discount_type == "Percentage (%)":
 
-                discount_value = st.number_input(
-                    "Discount %",
-                    min_value=0.0,
-                    max_value=100.0,
-                    step=5.0,
-                    format="%.1f"
-                )
+                    discount_value = st.number_input(
+                        "Discount %",
+                        min_value=0.0,
+                        max_value=100.0,
+                        step=5.0,
+                        format="%.1f"
+                    )
 
-            elif discount_type == "Fixed amount (€)":
+                elif discount_type == "Fixed amount (€)":
 
-                discount_value = st.number_input(
-                    "Discount amount (€)",
-                    min_value=0.0,
-                    step=1.0,
-                    format="%.2f"
-                )
+                    discount_value = st.number_input(
+                        "Discount amount (€)",
+                        min_value=0.0,
+                        step=1.0,
+                        format="%.2f"
+                    )
 
-
-    with col2:
-        
-        if is_b2b:
-        
-            vat = st.radio(
-                "IVA Rate",
-                ["21%", "10%"],
-                index=0,
-                horizontal=True,
-                disabled=True
-            )
-        
-            st.caption(
-                "🔒 B2B professional invoices use 21% IVA"
-            )
-        
-        else:
-        
-            vat = st.radio(
-                "IVA Rate",
-                ["21%", "10%"],
-                horizontal=True
-            )
+    # -----------------------------------------------------
+    # SUBMIT BUTTON
+    # -----------------------------------------------------
 
     submitted = st.form_submit_button(
         "Add to invoice",
@@ -351,17 +360,16 @@ with st.form("add_product", clear_on_submit=True):
     if submitted and name_input.strip() != "":
 
         item = calculate_invoice_item(
-        name=name_input,
-        base_price=base_price,
-        vat=vat,
-        discount_type=discount_type,
-        discount_value=discount_value
+            name=name_input,
+            base_price=base_price,
+            vat=vat,
+            discount_type=discount_type,
+            discount_value=discount_value
         )
-        
-        st.session_state.invoice_items.append(item)
-        
-        st.rerun()
 
+        st.session_state.invoice_items.append(item)
+
+        st.rerun()
 
 # =========================================================
 # CURRENT INVOICE
@@ -376,12 +384,16 @@ if st.session_state.invoice_items:
     totals = calculate_totals(
         st.session_state.invoice_items
     )
-    
+
     total_gross = totals["total_gross"]
     total_net = totals["total_net"]
     total_vat_21 = totals["total_vat_21"]
     total_vat_10 = totals["total_vat_10"]
     total_vat = totals["total_vat"]
+
+    # -----------------------------------------------------
+    # DISPLAY ITEMS
+    # -----------------------------------------------------
 
     for idx, item in enumerate(
         st.session_state.invoice_items,
@@ -433,29 +445,14 @@ if st.session_state.invoice_items:
 
                 st.rerun()
 
-        total_gross += item["gross_price"]
-        total_net += item["net_price"]
-
-        if item["vat"] == "21%":
-
-            total_vat_21 += item["vat_amount"]
-
-        else:
-
-            total_vat_10 += item["vat_amount"]
-
-    total_vat = (
-        total_vat_21 + total_vat_10
-    )
-
     # =====================================================
     # IRPF
     # =====================================================
 
     irpf_data = calculate_irpf(
-    total_gross,
-    total_net,
-    is_b2b
+        total_gross,
+        total_net,
+        is_b2b
     )
 
     irpf_total = irpf_data["irpf_total"]
@@ -741,7 +738,6 @@ if st.session_state.invoice_items:
         ):
 
             st.session_state.invoice_items = []
-
             st.session_state.form_key += 1
 
             st.rerun()
