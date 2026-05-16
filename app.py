@@ -450,20 +450,15 @@ if st.session_state.invoice_items:
     # IRPF
     # =====================================================
 
-    irpf_total = 0
-    final_payable = total_gross
+    irpf_data = calculate_irpf(
+    total_gross,
+    total_net,
+    is_b2b
+    )
 
-    if is_b2b:
+    irpf_total = irpf_data["irpf_total"]
 
-        irpf_total = round(
-            total_net * 0.15,
-            2
-        )
-
-        final_payable = round(
-            total_gross - irpf_total,
-            2
-        )
+    final_payable = irpf_data["final_payable"]
 
     # =====================================================
     # TOTAL DISPLAY
