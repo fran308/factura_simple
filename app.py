@@ -371,10 +371,15 @@ if st.session_state.invoice_items:
 
     st.subheader("📋 Current invoice")
 
-    total_gross = 0
-    total_net = 0
-    total_vat_21 = 0
-    total_vat_10 = 0
+    totals = calculate_totals(
+        st.session_state.invoice_items
+    )
+    
+    total_gross = totals["total_gross"]
+    total_net = totals["total_net"]
+    total_vat_21 = totals["total_vat_21"]
+    total_vat_10 = totals["total_vat_10"]
+    total_vat = totals["total_vat"]
 
     for idx, item in enumerate(
         st.session_state.invoice_items,
