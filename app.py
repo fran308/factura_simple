@@ -184,41 +184,41 @@ with st.sidebar:
 # FECHA DE EMISIÓN (AUTO)
 # -----------------------------------------------------
 
-invoice_date = date.today()
-
-st.date_input(
-    "Fecha de emisión",
-    value=invoice_date,
-    disabled=True
-)
-
-st.session_state.invoice_date = invoice_date
-
-# -----------------------------------------------------
-# FECHA DE OPERACIÓN
-# -----------------------------------------------------
-
-show_operation_date = (
-    invoice_type != "B2C • Factura simplificada"
-)
-
-if show_operation_date:
-
-    operation_date = st.date_input(
-        "Fecha de operación",
-        key=f"operation_date_{st.session_state.form_key}",
+    invoice_date = date.today()
+    
+    st.date_input(
+        "Fecha de emisión",
         value=invoice_date,
-        help=(
-            "Only change if the service "
-            "was performed on a different day"
-        )
+        disabled=True
     )
-
-else:
-
-    operation_date = invoice_date
-
-st.session_state.operation_date = operation_date
+    
+    st.session_state.invoice_date = invoice_date
+    
+    # -----------------------------------------------------
+    # FECHA DE OPERACIÓN
+    # -----------------------------------------------------
+    
+    show_operation_date = (
+        invoice_type != "B2C • Factura simplificada"
+    )
+    
+    if show_operation_date:
+    
+        operation_date = st.date_input(
+            "Fecha de operación",
+            key=f"operation_date_{st.session_state.form_key}",
+            value=invoice_date,
+            help=(
+                "Only change if the service "
+                "was performed on a different day"
+            )
+        )
+    
+    else:
+    
+        operation_date = invoice_date
+    
+    st.session_state.operation_date = operation_date
 
 # -----------------------------------------------------
 # SAVE INVOICE NUMBER
