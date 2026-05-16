@@ -264,9 +264,9 @@ if requires_client_details:
         height=80
     )
 
-st.session_state.client_name = client_name
-st.session_state.client_nif = client_nif
-st.session_state.client_address = client_address
+    st.session_state.client_name = client_name
+    st.session_state.client_nif = client_nif
+    st.session_state.client_address = client_address
 
 # =========================================================
 # ADD PRODUCT / SERVICE
