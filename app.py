@@ -13,6 +13,12 @@ from styles import load_css
 from session_state import initialize_session_state
 from helpers import calculate_net
 
+from calculations import (
+    calculate_invoice_item,
+    calculate_totals,
+    calculate_irpf
+)
+
 # =========================================================
 # PAGE CONFIG
 # =========================================================
@@ -342,72 +348,18 @@ with st.form("add_product", clear_on_submit=True):
 
     if submitted and name_input.strip() != "":
 
-        # -------------------------------------------------
-        # DISCOUNT
-        # -------------------------------------------------
+    item = calculate_invoice_item(
+    name=name_input,
+    base_price=base_price,
+    vat=vat,
+    discount_type=discount_type,
+    discount_value=discount_value
+    )
+    
+    st.session_state.invoice_items.append(item)
+    
+    st.rerun()
 
-        if discount_type == "Percentage (%)":
-
-            discount_amount = (
-                base_price * (discount_value / 100)
-            )
-
-        elif discount_type == "Fixed amount (€)":
-
-            discount_amount = discount_value
-
-        else:
-
-            discount_amount = 0.0
-
-        final_gross_price = max(
-            base_price - discount_amount,
-            0
-        )
-
-        # -------------------------------------------------
-        # VAT
-        # -------------------------------------------------
-
-        vat_rate = 0.21 if vat == "21%" else 0.10
-
-        net_price = calculate_net(
-            final_gross_price,
-            vat_rate
-        )
-
-        vat_amount = (
-            final_gross_price - net_price
-        )
-
-        # -------------------------------------------------
-        # SAVE ITEM
-        # -------------------------------------------------
-
-        st.session_state.invoice_items.append({
-
-            "name": name_input.strip(),
-
-            "base_price": round(base_price, 2),
-
-            "discount_type": discount_type,
-
-            "discount_value": round(discount_value, 2),
-
-            "discount_amount": round(discount_amount, 2),
-
-            "gross_price": round(final_gross_price, 2),
-
-            "net_price": round(net_price, 2),
-
-            "vat": vat,
-
-            "vat_rate": vat_rate,
-
-            "vat_amount": round(vat_amount, 2)
-        })
-
-        st.rerun()
 
 # =========================================================
 # CURRENT INVOICE
