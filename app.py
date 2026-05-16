@@ -263,10 +263,8 @@ with st.expander("💸 Optional discount"):
             "Percentage (%)",
             "Fixed amount (€)"
         ],
-        index=0
+        key="discount_type"
     )
-
-    discount_value = 0.0
 
     if discount_type == "Percentage (%)":
 
@@ -275,7 +273,8 @@ with st.expander("💸 Optional discount"):
             min_value=0.0,
             max_value=100.0,
             step=5.0,
-            format="%.1f"
+            format="%.1f",
+            key="discount_value"
         )
 
     elif discount_type == "Fixed amount (€)":
@@ -284,8 +283,13 @@ with st.expander("💸 Optional discount"):
             "Discount amount (€)",
             min_value=0.0,
             step=1.0,
-            format="%.2f"
+            format="%.2f",
+            key="discount_value"
         )
+
+    else:
+
+        discount_value = 0.0
 
 # =========================================================
 # PRODUCT FORM
@@ -353,6 +357,11 @@ with st.form("add_product", clear_on_submit=True):
         )
 
         st.session_state.invoice_items.append(item)
+
+        # RESET DISCOUNT UI
+
+        st.session_state.discount_type = "No discount"
+        st.session_state.discount_value = 0.0
 
         st.rerun()
 
