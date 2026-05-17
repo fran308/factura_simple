@@ -18,6 +18,12 @@ from calculations import (
     calculate_irpf
 )
 
+from stripe_service import (
+    build_line_items,
+    build_metadata,
+    create_checkout_session
+)
+
 # =========================================================
 # PAGE CONFIG
 # =========================================================
@@ -537,171 +543,36 @@ if st.session_state.invoice_items:
 
                     try:
 
-                        line_items = []
-
-                        if is_b2b:
-
-                            line_items.append({
-
-                                "price_data": {
-
-                                    "currency": "eur",
-
-                                    "unit_amount": int(
-                                        round(final_payable * 100)
-                                    ),
-
-                                    "product_data": {
-
-                                        "name": (
-                                            f"Invoice "
-                                            f"{st.session_state.invoice_number}"
-                                        )
-                                    },
-                                },
-
-                                "quantity": 1,
-                            })
-
-                        else:
-
-                            for item in payable_items:
-
-                                unit_amount_cents = int(
-                                    round(
-                                        item["gross_price"] * 100
-                                    )
-                                )
-
-                                line_items.append({
-
-                                    "price_data": {
-
-                                        "currency": "eur",
-
-                                        "unit_amount":
-                                            unit_amount_cents,
-
-                                        "product_data": {
-
-                                            "name":
-                                                f"{item['name']} "
-                                                "(IVA incluido)"
-                                        },
-                                    },
-
-                                    "quantity": 1,
-                                })
-
-                        expires_at = int(
-
-                            (
-                                datetime.utcnow()
-                                + timedelta(hours=23)
-                            ).timestamp()
+                        line_items = build_line_items(
+                            payable_items=payable_items,
+                            is_b2b=is_b2b,
+                            final_payable=final_payable,
+                            invoice_number=st.session_state.invoice_number
                         )
-
-                        checkout_session = stripe.checkout.Session.create(
-
+                
+                        metadata = build_metadata(
+                            session_state=st.session_state,
+                            total_gross=total_gross,
+                            total_net=total_net,
+                            total_vat=total_vat,
+                            irpf_total=irpf_total,
+                            final_payable=final_payable,
+                            username=username
+                        )
+                
+                        checkout_session = create_checkout_session(
                             line_items=line_items,
-
-                            mode="payment",
-
-                            success_url=(
-                                "https://ojoveterinario.es/"
-                                "thankyou-payment"
-                            ),
-
-                            cancel_url=(
-                                "https://ojoveterinario.es/"
-                                "payment-cancelled"
-                            ),
-
-                            billing_address_collection="auto",
-
-                            phone_number_collection={
-                                "enabled": True
-                            },
-
-                            customer_creation="always",
-
-                            expires_at=expires_at,
-
-                            metadata={
-
-                                "invoice_number":
-                                    st.session_state.invoice_number,
-
-                                "invoice_date":
-                                    st.session_state.invoice_date.isoformat(),
-
-                                "operation_date":
-                                    st.session_state.operation_date.isoformat(),
-
-                                "total_gross":
-                                    str(round(total_gross, 2)),
-
-                                "total_net":
-                                    str(round(total_net, 2)),
-
-                                "total_vat":
-                                    str(round(total_vat, 2)),
-
-                                "irpf_total":
-                                    str(round(irpf_total, 2)),
-
-                                "final_payable":
-                                    str(round(final_payable, 2)),
-
-                                "created_by":
-                                    username,
-
-                                "client_name":
-                                    st.session_state.client_name,
-
-                                "client_nif":
-                                    st.session_state.client_nif,
-
-                                "client_address":
-                                    st.session_state.client_address,
-                            }
+                            metadata=metadata
                         )
-
-                        st.success(
-                            f"✅ Payment link ready "
-                            f"for Invoice "
-                            f"#{st.session_state.invoice_number}"
-                        )
-
-                        if is_b2b:
-
-                            st.info(
-                                f"Company will pay "
-                                f"€{final_payable:.2f}"
-                            )
-
-                        else:
-
-                            st.info(
-                                f"Client will pay "
-                                f"€{total_gross:.2f}"
-                            )
-
-                        st.markdown(
-                            "**Send this secure payment "
-                            "link to your client:**"
-                        )
-
-                        st.code(
-                            checkout_session.url,
-                            language="text"
-                        )
-
+                
+                        st.success(...)
+                
                     except Exception as e:
-
+                
                         st.error(
                             f"Stripe error: {str(e)}"
                         )
+
 
     # -----------------------------------------------------
     # START NEW INVOICE
