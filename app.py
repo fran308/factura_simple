@@ -24,6 +24,14 @@ from stripe_service import (
     create_checkout_session
 )
 
+from invoice_service import (
+    get_invoice_type_flags,
+    validate_invoice,
+    get_payable_items,
+    build_total_title,
+    build_total_caption
+)
+
 # =========================================================
 # PAGE CONFIG
 # =========================================================
@@ -142,12 +150,11 @@ invoice_type = st.radio(
     disabled=len(st.session_state.invoice_items) > 0
 )
 
-requires_client_details = (
-    invoice_type != "B2C • Factura simplificada"
-)
-
-is_b2b = (
-    invoice_type == "B2B • Profesional con IRPF"
+(
+    requires_client_details,
+    is_b2b
+) = get_invoice_type_flags(
+    invoice_type
 )
 
 # =========================================================
@@ -464,30 +471,25 @@ if st.session_state.invoice_items:
 
     st.divider()
 
-    if is_b2b:
-
-        st.markdown(
-            f"### 💰 Amount company pays: €{final_payable:.2f}"
+    st.markdown(
+    
+        build_total_title(
+            is_b2b,
+            final_payable,
+            total_gross
         )
-
-        st.caption(
-            f"Base imponible: €{total_net:.2f} | "
-            f"IVA 21%: €{total_vat_21:.2f} | "
-            f"IVA 10%: €{total_vat_10:.2f} | "
-            f"IRPF 15%: -€{irpf_total:.2f}"
+    )
+    
+    st.caption(
+    
+        build_total_caption(
+            is_b2b,
+            total_net,
+            total_vat_21,
+            total_vat_10,
+            irpf_total
         )
-
-    else:
-
-        st.markdown(
-            f"### 💰 Total client pays: €{total_gross:.2f}"
-        )
-
-        st.caption(
-            f"Net: €{total_net:.2f} | "
-            f"IVA 21%: €{total_vat_21:.2f} | "
-            f"IVA 10%: €{total_vat_10:.2f}"
-        )
+    )
 
     # =====================================================
     # ACTION BUTTONS
@@ -507,36 +509,21 @@ if st.session_state.invoice_items:
             use_container_width=True
         ):
 
-            if not st.session_state.invoice_number:
-
-                st.error(
-                    "❌ Enter invoice number first"
-                )
-
-            elif not st.session_state.invoice_items:
-
-                st.error(
-                    "❌ No items in invoice"
-                )
-
+            validation_error = validate_invoice(
+                invoice_number=st.session_state.invoice_number,
+                invoice_items=st.session_state.invoice_items
+            )
+            
+            if validation_error:
+            
+                st.error(validation_error)
+            
             else:
-
-                payable_items = [
-
-                    item for item
-                    in st.session_state.invoice_items
-
-                    if item["gross_price"] > 0
-                ]
-
-                if not payable_items:
-
-                    st.error(
-                        "❌ No payable items in invoice"
-                    )
-
-                    st.stop()
-
+            
+                payable_items = get_payable_items(
+                    st.session_state.invoice_items
+                )
+            
                 with st.spinner(
                     "Creating Stripe payment link..."
                 ):
