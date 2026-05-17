@@ -32,6 +32,10 @@ from invoice_service import (
     build_total_caption
 )
 
+from invoice_builder import (
+    build_invoice_object
+)
+
 # =========================================================
 # PAGE CONFIG
 # =========================================================
