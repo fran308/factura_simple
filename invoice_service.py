@@ -12,9 +12,14 @@ def get_invoice_type_flags(invoice_type):
         invoice_type == "B2B • Profesional con IRPF"
     )
 
+    is_simplified_invoice = (
+        invoice_type == "B2C • Factura simplificada"
+    )
+
     return (
         requires_client_details,
-        is_b2b
+        is_b2b,
+        is_simplified_invoice
     )
 
 
@@ -24,30 +29,41 @@ def get_invoice_type_flags(invoice_type):
 
 def validate_invoice(
     invoice_number,
-    invoice_items
+    invoice_items,
+    requires_client_details=False,
+    client_name="",
+    client_nif=""
 ):
+
+    # -----------------------------------------------------
+    # INVOICE NUMBER
+    # -----------------------------------------------------
 
     if not invoice_number:
 
-        return (
-            "❌ Enter invoice number first"
-        )
+        return "❌ Enter invoice number first"
+
+    # -----------------------------------------------------
+    # ITEMS
+    # -----------------------------------------------------
 
     if not invoice_items:
 
-        return (
-            "❌ No items in invoice"
-        )
+        return "❌ No items in invoice"
 
-    payable_items = get_payable_items(
-        invoice_items
-    )
+    # -----------------------------------------------------
+    # CLIENT DETAILS
+    # -----------------------------------------------------
 
-    if not payable_items:
+    if requires_client_details:
 
-        return (
-            "❌ No payable items in invoice"
-        )
+        if not client_name.strip():
+
+            return "❌ Client name required"
+
+        if not client_nif.strip():
+
+            return "❌ Client tax ID required"
 
     return None
 
@@ -116,3 +132,58 @@ def build_total_caption(
         f"IVA 21%: €{total_vat_21:.2f} | "
         f"IVA 10%: €{total_vat_10:.2f}"
     )
+
+
+# =========================================================
+# INVOICE STATUS
+# =========================================================
+
+def get_initial_invoice_status():
+
+    return "DRAFT"
+
+
+# =========================================================
+# VERIFACTU READINESS
+# =========================================================
+
+def requires_verifactu_submission(
+    is_b2b,
+    total_gross,
+    client_requested_invoice=False
+):
+
+    # -----------------------------------------------------
+    # FUTURE LOGIC PLACEHOLDER
+    # -----------------------------------------------------
+
+    if is_b2b:
+
+        return True
+
+    if total_gross >= 400:
+
+        return True
+
+    if client_requested_invoice:
+
+        return True
+
+    return False
+
+
+# =========================================================
+# STRIPE ELIGIBILITY
+# =========================================================
+
+def can_generate_payment_link(
+    invoice_status
+):
+
+    allowed_statuses = [
+
+        "DRAFT",
+        "READY_FOR_PAYMENT"
+    ]
+
+    return invoice_status in allowed_statuses
