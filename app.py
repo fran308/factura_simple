@@ -565,10 +565,38 @@ if st.session_state.invoice_items:
                             metadata=metadata
                         )
                 
-                        st.success(...)
-                
+                        st.success(
+                            f"✅ Payment link ready "
+                            f"for Invoice "
+                            f"#{st.session_state.invoice_number}"
+                        )
+                    
+                        if is_b2b:
+                    
+                            st.info(
+                                f"Company will pay "
+                                f"€{final_payable:.2f}"
+                            )
+                    
+                        else:
+                    
+                            st.info(
+                                f"Client will pay "
+                                f"€{total_gross:.2f}"
+                            )
+                    
+                        st.markdown(
+                            "**Send this secure payment "
+                            "link to your client:**"
+                        )
+                    
+                        st.code(
+                            checkout_session.url,
+                            language="text"
+                        )
+                    
                     except Exception as e:
-                
+                    
                         st.error(
                             f"Stripe error: {str(e)}"
                         )
