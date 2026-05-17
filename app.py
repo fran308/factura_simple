@@ -469,6 +469,16 @@ if st.session_state.invoice_items:
 
     final_payable = irpf_data["final_payable"]
 
+    invoice_data = build_invoice_object(
+        session_state=st.session_state,
+        invoice_type=invoice_type,
+        invoice_items=st.session_state.invoice_items,
+        totals=totals,
+        irpf_data=irpf_data,
+        username=username,
+        is_b2b=is_b2b
+    )
+
     # =====================================================
     # TOTAL DISPLAY
     # =====================================================
