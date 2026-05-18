@@ -156,7 +156,8 @@ invoice_type = st.radio(
 
 (
     requires_client_details,
-    is_b2b
+    is_b2b,
+    is_simplified_invoice
 ) = get_invoice_type_flags(
     invoice_type
 )
