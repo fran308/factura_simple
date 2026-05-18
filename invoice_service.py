@@ -154,20 +154,32 @@ def requires_verifactu_submission(
 ):
 
     # -----------------------------------------------------
-    # FUTURE LOGIC PLACEHOLDER
+    # B2B ALWAYS REQUIRES VERIFACTU
     # -----------------------------------------------------
 
     if is_b2b:
 
         return True
 
+    # -----------------------------------------------------
+    # B2C >= 400€
+    # -----------------------------------------------------
+
     if total_gross >= 400:
 
         return True
 
+    # -----------------------------------------------------
+    # CLIENT REQUESTED FULL INVOICE
+    # -----------------------------------------------------
+
     if client_requested_invoice:
 
         return True
+
+    # -----------------------------------------------------
+    # OTHERWISE SIMPLIFIED TICKET
+    # -----------------------------------------------------
 
     return False
 
@@ -187,49 +199,3 @@ def can_generate_payment_link(
     ]
 
     return invoice_status in allowed_statuses
-
-# =========================================================
-# VERIFACTU PLACEHOLDER LOGIC
-# =========================================================
-
-def requires_verifactu_submission(
-    is_b2b,
-    total_gross,
-    client_requested_invoice
-):
-
-    # -----------------------------------------------------
-    # B2B ALWAYS REQUIRES IT
-    # -----------------------------------------------------
-
-    if is_b2b:
-        return True
-
-    # -----------------------------------------------------
-    # B2C OVER 400€
-    # -----------------------------------------------------
-
-    if total_gross > 400:
-        return True
-
-    # -----------------------------------------------------
-    # CLIENT REQUESTED FULL INVOICE
-    # -----------------------------------------------------
-
-    if client_requested_invoice:
-        return True
-
-    # -----------------------------------------------------
-    # OTHERWISE SIMPLIFIED TICKET
-    # -----------------------------------------------------
-
-    return False
-
-
-# =========================================================
-# INITIAL STATUS
-# =========================================================
-
-def get_initial_invoice_status():
-
-    return "draft"
