@@ -27,46 +27,35 @@ def get_invoice_type_flags(invoice_type):
 # VALIDATE INVOICE
 # =========================================================
 
+
 def validate_invoice(
     invoice_number,
     invoice_items,
     requires_client_details=False,
-    client_name="",
-    client_nif=""
+    client_data=None  # ← cambiar de campos individuales a diccionario
 ):
-
     # -----------------------------------------------------
     # INVOICE NUMBER
     # -----------------------------------------------------
-
     if not invoice_number:
-
         return "❌ Enter invoice number first"
-
+    
     # -----------------------------------------------------
     # ITEMS
     # -----------------------------------------------------
-
     if not invoice_items:
-
         return "❌ No items in invoice"
-
+    
     # -----------------------------------------------------
     # CLIENT DETAILS
     # -----------------------------------------------------
-
     if requires_client_details:
-
-        if not client_name.strip():
-
-            return "❌ Client name required"
-
-        if not client_nif.strip():
-
-            return "❌ Client tax ID required"
-
+        from client_fields import validate_client
+        error = validate_client(client_data or {})
+        if error:
+            return error
+    
     return None
-
 
 # =========================================================
 # PAYABLE ITEMS
