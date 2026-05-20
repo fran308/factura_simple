@@ -239,31 +239,77 @@ with st.sidebar:
     # CLIENT DETAILS
     # -----------------------------------------------------
 
+    # =========================================================
+# CLIENT DETAILS - VERSIÓN NUEVA (flexible)
+# =========================================================
+
     if requires_client_details:
-
         st.divider()
-
-        st.subheader("👤 Client details")
-
-        client_name = st.text_input(
-            "Full name / Company name",
-            key=f"client_name_{st.session_state.form_key}"
-        )
-
-        client_nif = st.text_input(
-            "Tax ID (DNI/NIF/CIF/NIE)",
-            key=f"client_nif_{st.session_state.form_key}"
-        )
-
-        client_address = st.text_area(
-            "Fiscal address",
-            key=f"client_address_{st.session_state.form_key}",
-            height=80
-        )
-
-        st.session_state.client_name = client_name
-        st.session_state.client_nif = client_nif
-        st.session_state.client_address = client_address
+        st.subheader("👤 Datos del cliente")
+        
+        from client_fields import CLIENT_FIELDS, get_fields_by_section, get_full_address, validate_client
+        
+        # Opción: mostrar campos por secciones
+        sections = ["basic", "address", "contact", "other"]
+        
+        for section in sections:
+            section_fields = get_fields_by_section(section)
+            if section_fields:
+                # Título de sección
+                if section == "basic":
+                    st.markdown("**📋 Información básica**")
+                elif section == "address":
+                    st.markdown("**📍 Dirección**")
+                elif section == "contact":
+                    st.markdown("**📞 Contacto**")
+                elif section == "other":
+                    st.markdown("**📝 Información adicional**")
+                
+                # Mostrar campos de esta sección
+                for field_name in section_fields:
+                    field_config = CLIENT_FIELDS[field_name]
+                    
+                    # Obtener valor actual del session_state
+                    current_value = st.session_state.client.get(field_name, "")
+                    
+                    # Usar valor por defecto si existe y el campo está vacío
+                    if not current_value and "default" in field_config:
+                        current_value = field_config["default"]
+                    
+                    # Mostrar según tipo de input
+                    if field_config["input_type"] == "textarea":
+                        value = st.text_area(
+                            field_config["label"],
+                            value=current_value,
+                            key=f"client_{field_name}_{st.session_state.form_key}",
+                            placeholder=field_config.get("placeholder", ""),
+                            help=field_config.get("help", "")
+                        )
+                    else:
+                        value = st.text_input(
+                            field_config["label"],
+                            value=current_value,
+                            key=f"client_{field_name}_{st.session_state.form_key}",
+                            placeholder=field_config.get("placeholder", ""),
+                            help=field_config.get("help", "")
+                        )
+                    
+                    # Guardar en el diccionario client
+                    st.session_state.client[field_name] = value
+                
+                st.write("")  # espacio entre secciones
+        
+        # Mostrar dirección completa generada (feedback visual)
+        full_address = get_full_address(st.session_state.client)
+        if full_address:
+            st.caption(f"📮 Dirección completa: {full_address}")
+        
+        # Validación en tiempo real (opcional)
+        validation_error = validate_client(st.session_state.client)
+        if validation_error:
+            st.warning(validation_error)
+        else:
+            st.success("✅ Datos de cliente correctos")
 
 # =========================================================
 # ADD PRODUCT / SERVICE
