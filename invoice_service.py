@@ -27,12 +27,11 @@ def get_invoice_type_flags(invoice_type):
 # VALIDATE INVOICE
 # =========================================================
 
-
 def validate_invoice(
     invoice_number,
     invoice_items,
     requires_client_details=False,
-    client_data=None  # ← cambiar de campos individuales a diccionario
+    client_data=None  # ← diccionario, no campos individuales
 ):
     # -----------------------------------------------------
     # INVOICE NUMBER
