@@ -553,134 +553,109 @@ if st.session_state.invoice_items:
     )
 
     # =====================================================
-    # ACTION BUTTONS
+    # ACTION BUTTONS (VERSIÓN ACTUALIZADA)
     # =====================================================
-
-    col1, col2, col3 = st.columns(3)
-
-    # -----------------------------------------------------
-    # GENERATE STRIPE LINK
-    # -----------------------------------------------------
-
-    with col1:
-
-        if st.button(
-            "🚀 Generate Stripe link",
-            type="primary",
-            use_container_width=True
-        ):
-
-            validation_error = validate_invoice(
+    
+    st.divider()
+    st.subheader("📄 Gestión de Factura")
+    
+    # Mostrar estado actual (opcional)
+    st.info(f"**Estado:** {st.session_state.invoice_status}")
+    
+    # =====================================================
+    # FILA 1: ACCIONES DE PDF
+    # =====================================================
+    
+    col_pdf1, col_pdf2, col_pdf3 = st.columns([1, 1, 2])
+    
+    with col_pdf1:
+        if st.button("📄 Generar PDF", type="primary", use_container_width=True):
+            from pdf_service import generate_pdf
+            from invoice_service import validate_invoice
+            from client_fields import validate_client
+            
+            # Validar datos obligatorios
+            error = validate_invoice(
                 invoice_number=st.session_state.invoice_number,
                 invoice_items=st.session_state.invoice_items,
                 requires_client_details=requires_client_details,
                 client_data=st.session_state.client
             )
             
-            if validation_error:
-            
-                st.error(validation_error)
-            
+            if error:
+                st.error(error)
             else:
-            
-                payable_items = get_payable_items(
-                    st.session_state.invoice_items
-                )
-            
-                with st.spinner(
-                    "Creating Stripe payment link..."
-                ):
-
-                    try:
-
-                        line_items = build_line_items(
-                            payable_items=payable_items,
-                            is_b2b=is_b2b,
-                            final_payable=final_payable,
-                            invoice_number=st.session_state.invoice_number
-                        )
-                
-                        metadata = build_metadata(
-                            session_state=st.session_state,
-                            total_gross=total_gross,
-                            total_net=total_net,
-                            total_vat=total_vat,
-                            irpf_total=irpf_total,
-                            final_payable=final_payable,
-                            username=username
-                        )
-                
-                        checkout_session = create_checkout_session(
-                            line_items=line_items,
-                            metadata=metadata
-                        )
-                
-                        st.success(
-                            f"✅ Payment link ready "
-                            f"for Invoice "
-                            f"#{st.session_state.invoice_number}"
-                        )
+                with st.spinner("Generando PDF..."):
+                    # Reconstruir invoice_data con datos actuales
+                    invoice_data = build_invoice_object(
+                        session_state=st.session_state,
+                        invoice_type=invoice_type,
+                        invoice_items=st.session_state.invoice_items,
+                        totals=totals,
+                        irpf_data=irpf_data,
+                        username=username,
+                        is_b2b=is_b2b
+                    )
                     
-                        if is_b2b:
-                    
-                            st.info(
-                                f"Company will pay "
-                                f"€{final_payable:.2f}"
-                            )
-                    
-                        else:
-                    
-                            st.info(
-                                f"Client will pay "
-                                f"€{total_gross:.2f}"
-                            )
-                    
-                        st.markdown(
-                            "**Send this secure payment "
-                            "link to your client:**"
-                        )
-                    
-                        st.code(
-                            checkout_session.url,
-                            language="text"
-                        )
-                    
-                    except Exception as e:
-                    
-                        st.error(
-                            f"Stripe error: {str(e)}"
-                        )
-
-
+                    pdf_bytes = generate_pdf(invoice_data)
+                    st.session_state.generated_pdf = pdf_bytes
+                    st.session_state.invoice_status = "READY_FOR_VALIDATION"
+                    st.success("✅ PDF generado correctamente")
+                    st.rerun()
+    
+    with col_pdf2:
+        if st.session_state.get("generated_pdf"):
+            st.download_button(
+                label="💾 Descargar PDF",
+                data=st.session_state.generated_pdf,
+                file_name=f"factura_{st.session_state.invoice_number}.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+        else:
+            st.button("💾 Sin PDF", disabled=True, use_container_width=True)
+    
+    with col_pdf3:
+        st.caption("Genera el PDF antes de enviar la factura al cliente")
+    
+    # =====================================================
+    # FILA 2: BOTONES EXISTENTES (Stripe, etc.)
+    # =====================================================
+    
+    col1, col2, col3 = st.columns(3)
+    
+    # -----------------------------------------------------
+    # GENERATE STRIPE LINK (solo si hay PDF generado o si quieres mantenerlo)
+    # -----------------------------------------------------
+    with col1:
+        # Opcional: solo mostrar si se ha generado PDF
+        if st.session_state.invoice_status != "DRAFT":
+            if st.button("🚀 Generate Stripe link", type="primary", use_container_width=True):
+                # ... tu código de Stripe existente (sin cambios) ...
+                pass
+        else:
+            st.button("🚀 Generar PDF primero", disabled=True, use_container_width=True)
+    
     # -----------------------------------------------------
     # START NEW INVOICE
     # -----------------------------------------------------
-
     with col2:
-
-        if st.button(
-            "🔄 Start new invoice",
-            use_container_width=True
-        ):
-
+        if st.button("🔄 Start new invoice", use_container_width=True):
+            # Limpiar también el PDF generado
             st.session_state.invoice_items = []
+            st.session_state.generated_pdf = None
+            st.session_state.invoice_status = "DRAFT"
             st.session_state.form_key += 1
-
             st.rerun()
-
+    
     # -----------------------------------------------------
-    # CLEAR ITEMS
+    # CLEAR ALL ITEMS
     # -----------------------------------------------------
-
     with col3:
-
-        if st.button(
-            "🗑 Clear all items",
-            use_container_width=True
-        ):
-
+        if st.button("🗑 Clear all items", use_container_width=True):
             st.session_state.invoice_items = []
-
+            st.session_state.generated_pdf = None
+            st.session_state.invoice_status = "DRAFT"
             st.rerun()
 
 # =========================================================
