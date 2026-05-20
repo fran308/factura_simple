@@ -572,7 +572,9 @@ if st.session_state.invoice_items:
 
             validation_error = validate_invoice(
                 invoice_number=st.session_state.invoice_number,
-                invoice_items=st.session_state.invoice_items
+                invoice_items=st.session_state.invoice_items,
+                requires_client_details=requires_client_details,
+                client_data=st.session_state.client
             )
             
             if validation_error:
