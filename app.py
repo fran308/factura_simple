@@ -1,11 +1,7 @@
 import streamlit as st
 import stripe
 
-from datetime import (
-    date,
-    datetime,
-    timedelta
-)
+from datetime import date, datetime, timedelta
 
 import streamlit_authenticator as stauth
 
@@ -35,6 +31,8 @@ from invoice_service import (
 from invoice_builder import (
     build_invoice_object
 )
+
+from client_fields import CLIENT_FIELDS, get_fields_by_section, get_full_address, validate_client
 
 # =========================================================
 # PAGE CONFIG
