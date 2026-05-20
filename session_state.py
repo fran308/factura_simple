@@ -10,11 +10,11 @@ def initialize_session_state():
         "invoice_date": date.today(),
         "form_key": 0,
         
-        # NUEVO: Cliente como diccionario flexible
+        # Cliente como diccionario flexible
         "client": {
             "name": "",
             "nif": "",
-            "address": "",  # legacy, para compatibilidad
+            "address": "",
             "street": "",
             "street_number": "",
             "city": "",
@@ -26,20 +26,22 @@ def initialize_session_state():
             "notes": ""
         },
         
-        # Para la migración de datos antiguos
-        "client_name": "",  # legacy
-        "client_nif": "",   # legacy
-        "client_address": "", # legacy
+        # Campos legacy (para migración)
+        "client_name": "",
+        "client_nif": "",
+        "client_address": "",
         
+        # NUEVO: Para el PDF
         "generated_pdf": None,
-        "invoice_status": "DRAFT"
+        "invoice_status": "DRAFT",
+        "validation_passed": False
     }
     
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
     
-    # MIGRACIÓN: Si hay datos antiguos, pasarlos al nuevo formato
+    # MIGRACIÓN: Convertir datos antiguos al nuevo formato
     if st.session_state.client_name and not st.session_state.client["name"]:
         st.session_state.client["name"] = st.session_state.client_name
         st.session_state.client["nif"] = st.session_state.client_nif
