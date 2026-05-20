@@ -93,44 +93,26 @@ def build_metadata(
     final_payable,
     username
 ):
+    client = session_state.client
 
     return {
-
-        "invoice_number":
-            session_state.invoice_number,
-
-        "invoice_date":
-            session_state.invoice_date.isoformat(),
-
-        "operation_date":
-            session_state.operation_date.isoformat(),
-
-        "total_gross":
-            str(round(total_gross, 2)),
-
-        "total_net":
-            str(round(total_net, 2)),
-
-        "total_vat":
-            str(round(total_vat, 2)),
-
-        "irpf_total":
-            str(round(irpf_total, 2)),
-
-        "final_payable":
-            str(round(final_payable, 2)),
-
-        "created_by":
-            username,
-
-        "client_name":
-            session_state.client_name,
-
-        "client_nif":
-            session_state.client_nif,
-
-        "client_address":
-            session_state.client_address,
+        "invoice_number": session_state.invoice_number,
+        "invoice_date": session_state.invoice_date.isoformat(),
+        "operation_date": session_state.operation_date.isoformat(),
+        
+        "total_gross": str(round(total_gross, 2)),
+        "total_net": str(round(total_net, 2)),
+        "total_vat": str(round(total_vat, 2)),
+        "irpf_total": str(round(irpf_total, 2)),
+        "final_payable": str(round(final_payable, 2)),
+        
+        "created_by": username,
+        
+        # Cliente (solo campos esenciales por límite de caracteres)
+        "client_name": client.get("name", ""),
+        "client_nif": client.get("nif", ""),
+        "client_email": client.get("email", ""),
+        "client_phone": client.get("phone", ""),
     }
 
 
