@@ -233,11 +233,9 @@ with st.sidebar:
             "⚠️ Enter invoice number"
         )
 
-    # -----------------------------------------------------
-    # CLIENT DETAILS
-    # -----------------------------------------------------
 
-    # =========================================================
+
+# =========================================================
 # CLIENT DETAILS - VERSIÓN NUEVA (flexible)
 # =========================================================
 
@@ -629,7 +627,84 @@ if st.session_state.invoice_items:
         # Opcional: solo mostrar si se ha generado PDF
         if st.session_state.invoice_status != "DRAFT":
             if st.button("🚀 Generate Stripe link", type="primary", use_container_width=True):
-                # ... tu código de Stripe existente (sin cambios) ...
+                validation_error = validate_invoice(
+                invoice_number=st.session_state.invoice_number,
+                invoice_items=st.session_state.invoice_items
+            )
+            
+            if validation_error:
+            
+                st.error(validation_error)
+            
+            else:
+            
+                payable_items = get_payable_items(
+                    st.session_state.invoice_items
+                )
+            
+                with st.spinner(
+                    "Creating Stripe payment link..."
+                ):
+
+                    try:
+
+                        line_items = build_line_items(
+                            payable_items=payable_items,
+                            is_b2b=is_b2b,
+                            final_payable=final_payable,
+                            invoice_number=st.session_state.invoice_number
+                        )
+                
+                        metadata = build_metadata(
+                            session_state=st.session_state,
+                            total_gross=total_gross,
+                            total_net=total_net,
+                            total_vat=total_vat,
+                            irpf_total=irpf_total,
+                            final_payable=final_payable,
+                            username=username
+                        )
+                
+                        checkout_session = create_checkout_session(
+                            line_items=line_items,
+                            metadata=metadata
+                        )
+                
+                        st.success(
+                            f"✅ Payment link ready "
+                            f"for Invoice "
+                            f"#{st.session_state.invoice_number}"
+                        )
+                    
+                        if is_b2b:
+                    
+                            st.info(
+                                f"Company will pay "
+                                f"€{final_payable:.2f}"
+                            )
+                    
+                        else:
+                    
+                            st.info(
+                                f"Client will pay "
+                                f"€{total_gross:.2f}"
+                            )
+                    
+                        st.markdown(
+                            "**Send this secure payment "
+                            "link to your client:**"
+                        )
+                    
+                        st.code(
+                            checkout_session.url,
+                            language="text"
+                        )
+                    
+                    except Exception as e:
+                    
+                        st.error(
+                            f"Stripe error: {str(e)}"
+                        )
                 pass
         else:
             st.button("🚀 Generar PDF primero", disabled=True, use_container_width=True)
