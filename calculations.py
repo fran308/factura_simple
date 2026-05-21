@@ -1,176 +1,107 @@
-# calculations.py
 from decimal import Decimal, ROUND_HALF_UP
 
+# Constantes Decimal para evitar imprecisiones
+TWO_PLACES = Decimal('0.01')
+C_100 = Decimal('100')
+C_15 = Decimal('0.15')
 
-def round_currency(value):
-    """
-    Redondea un valor al método fiscal español (5 o más sube).
-    
-    Args:
-        value (float/int/str): Valor a redondear
-    
-    Returns:
-        float: Valor redondeado a 2 decimales con ROUND_HALF_UP
-    
-    Examples:
-        >>> round_currency(11.085)
-        11.09
-        >>> round_currency(11.084)
-        11.08
-        >>> round_currency(10.525)
-        10.53
-    """
-    # Convertir a string para evitar problemas de precisión de float
-    decimal_value = Decimal(str(value))
-    # Redondear a 2 decimales con ROUND_HALF_UP (5 sube al siguiente)
-    rounded = decimal_value.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-    return float(rounded)
+def to_decimal(value) -> Decimal:
+    """Convierte cualquier entrada de forma segura a Decimal."""
+    if value is None:
+        return Decimal('0.00')
+    return Decimal(str(value))
 
+def round_currency(value) -> float:
+    """Redondea un valor al método fiscal español (ROUND_HALF_UP) y retorna float."""
+    dec = to_decimal(value)
+    return float(dec.quantize(TWO_PLACES, rounding=ROUND_HALF_UP))
 
-def calculate_discount(base_price, discount_type, discount_value):
-    """
-    Calcula el monto del descuento según el tipo.
-    
-    Args:
-        base_price (float): Precio base del producto
-        discount_type (str): "Percentage (%)", "Fixed amount (€)", o "No discount"
-        discount_value (float): Valor del descuento (porcentaje o cantidad fija)
-    
-    Returns:
-        float: Monto del descuento redondeado
-    """
+def calculate_discount(base_price: Decimal, discount_type: str, discount_value: Decimal) -> Decimal:
+    """Calcula el monto del descuento usando Decimal sin redondear prematuramente."""
     if discount_type == "Percentage (%)":
-        discount_amount = base_price * (discount_value / 100)
+        return base_price * (discount_value / C_100)
     elif discount_type == "Fixed amount (€)":
-        discount_amount = discount_value
-    else:
-        discount_amount = 0.0
-    
-    return round_currency(discount_amount)
+        return discount_value
+    return Decimal('0.00')
 
-
-def calculate_net(gross_price, vat_percentage):
-    """
-    Calcula el precio neto (sin IVA) a partir del precio bruto (con IVA).
+def calculate_invoice_item(name: str, base_price_gross, vat: str, discount_type: str, discount_value_input):
+    """Crea un item de factura con cálculos basados en precisión Decimal."""
     
-    Args:
-        gross_price (float): Precio con IVA incluido
-        vat_percentage (float): Tipo de IVA (0.21 para 21%, 0.10 para 10%)
+    # 1. Convertir entradas a Decimal de alta precisión
+    b_price_gross = to_decimal(base_price_gross)
+    disc_value = to_decimal(discount_value_input)
+    vat_rate = Decimal('0.21') if vat == "21%" else Decimal('0.10')
     
-    Returns:
-        float: Precio neto (sin IVA) redondeado
+    # 2. Calcular descuento y precio bruto final (con IVA)
+    discount_amount = calculate_discount(b_price_gross, discount_type, disc_value)
+    final_gross_price = max(b_price_gross - discount_amount, Decimal('0.00'))
     
-    Formula:
-        net_price = gross_price / (1 + vat_percentage)
-    """
-    net_price = gross_price / (1 + vat_percentage)
-    return round_currency(net_price)
-
-
-def calculate_invoice_item(name, base_price, vat, discount_type, discount_value):
-    """
-    Crea un objeto item con todos los cálculos necesarios.
+    # 3. Desglose inverso EXACTO: Encontrar la Base Imponible antes de redondear
+    # Fórmula: Neto = Bruto / (1 + Tipo IVA)
+    net_price_exact = final_gross_price / (Decimal('1') + vat_rate)
     
-    Args:
-        name (str): Nombre del producto/servicio
-        base_price (float): Precio base (IVA incluido) introducido por el usuario
-        vat (str): "21%" o "10%"
-        discount_type (str): Tipo de descuento aplicado
-        discount_value (float): Valor del descuento
+    # 4. El IVA se calcula aplicando el porcentaje sobre la base exacta, NO por resta
+    vat_amount_exact = net_price_exact * vat_rate
     
-    Returns:
-        dict: Objeto item con todos los valores calculados y redondeados
-    """
-    
-    # Calcular descuento
-    discount_amount = calculate_discount(base_price, discount_type, discount_value)
-    
-    # Precio final bruto (con IVA) después del descuento
-    final_gross_price = max(base_price - discount_amount, 0)
-    final_gross_price = round_currency(final_gross_price)
-    
-    # Determinar tipo de IVA
-    vat_rate = 0.21 if vat == "21%" else 0.10
-    
-    # Calcular precio neto (sin IVA)
-    net_price = calculate_net(final_gross_price, vat_rate)
-    
-    # Calcular monto del IVA
-    vat_amount = final_gross_price - net_price
-    vat_amount = round_currency(vat_amount)
-    
+    # 5. Redondear de manera individual para la presentación de la línea
     return {
         "name": name.strip(),
-        "base_price": round_currency(base_price),
+        "base_price": round_currency(b_price_gross),
         "discount_type": discount_type,
-        "discount_value": round_currency(discount_value),
-        "discount_amount": discount_amount,
-        "gross_price": final_gross_price,
-        "net_price": net_price,
+        "discount_value": round_currency(disc_value),
+        "discount_amount": round_currency(discount_amount),
+        "gross_price": round_currency(final_gross_price),
+        "net_price": round_currency(net_price_exact),
         "vat": vat,
-        "vat_rate": vat_rate,
-        "vat_amount": vat_amount
+        "vat_rate": float(vat_rate),
+        "vat_amount": round_currency(vat_amount_exact),
+        # Guardamos los Decimal originales para que el cálculo de totales sea perfecto
+        "_net_exact": net_price_exact,
+        "_vat_exact": vat_amount_exact,
+        "_gross_exact": final_gross_price
     }
-
 
 def calculate_totals(invoice_items):
-    """
-    Calcula los totales de la factura a partir de la lista de items.
-    
-    Args:
-        invoice_items (list): Lista de objetos item
-    
-    Returns:
-        dict: Totales calculados y redondeados
-    """
-    total_gross = 0.0
-    total_net = 0.0
-    total_vat_21 = 0.0
-    total_vat_10 = 0.0
+    """Calcula los totales acumulando los valores exactos antes de redondear."""
+    total_gross_exact = Decimal('0.00')
+    total_net_exact = Decimal('0.00')
+    total_vat_21_exact = Decimal('0.00')
+    total_vat_10_exact = Decimal('0.00')
     
     for item in invoice_items:
-        total_gross += item["gross_price"]
-        total_net += item["net_price"]
+        # Recuperamos el valor exacto (o lo convertimos si viene de una fuente externa)
+        total_gross_exact += to_decimal(item.get("_gross_exact", item["gross_price"]))
+        total_net_exact += to_decimal(item.get("_net_exact", item["net_price"]))
         
+        item_vat_exact = to_decimal(item.get("_vat_exact", item["vat_amount"]))
         if item["vat"] == "21%":
-            total_vat_21 += item["vat_amount"]
+            total_vat_21_exact += item_vat_exact
         else:
-            total_vat_10 += item["vat_amount"]
-    
-    total_vat = total_vat_21 + total_vat_10
+            total_vat_10_exact += item_vat_exact
+            
+    total_vat_exact = total_vat_21_exact + total_vat_10_exact
     
     return {
-        "total_gross": round_currency(total_gross),
-        "total_net": round_currency(total_net),
-        "total_vat_21": round_currency(total_vat_21),
-        "total_vat_10": round_currency(total_vat_10),
-        "total_vat": round_currency(total_vat)
+        "total_gross": round_currency(total_gross_exact),
+        "total_net": round_currency(total_net_exact),
+        "total_vat_21": round_currency(total_vat_21_exact),
+        "total_vat_10": round_currency(total_vat_10_exact),
+        "total_vat": round_currency(total_vat_exact)
     }
 
-
-def calculate_irpf(total_gross, total_net, is_b2b):
-    """
-    Calcula el IRPF y el total final a pagar para facturas B2B.
+def calculate_irpf(total_gross, total_net, is_b2b: bool):
+    """Calcula el IRPF (15%) sobre la base imponible final."""
+    t_gross = to_decimal(total_gross)
+    t_net = to_decimal(total_net)
     
-    Args:
-        total_gross (float): Total bruto (con IVA)
-        total_net (float): Total neto (sin IVA, base imponible)
-        is_b2b (bool): True si es factura B2B (profesional con IRPF)
-    
-    Returns:
-        dict: IRPF calculado y total final a pagar
-    
-    Nota:
-        El IRPF se aplica sobre la base imponible (total_net) y es del 15%
-    """
-    irpf_total = 0.0
-    final_payable = total_gross
+    irpf_total = Decimal('0.00')
+    final_payable = t_gross
     
     if is_b2b:
-        irpf_total = round_currency(total_net * 0.15)
-        final_payable = round_currency(total_gross - irpf_total)
-    
+        irpf_total = t_net * C_15
+        final_payable = t_gross - irpf_total
+        
     return {
-        "irpf_total": irpf_total,
-        "final_payable": final_payable
+        "irpf_total": round_currency(irpf_total),
+        "final_payable": round_currency(final_payable)
     }
